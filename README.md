@@ -4,7 +4,7 @@
 
 Part of the [A. Mirza academic tools portfolio](https://dthornz.github.io/website-cv-tools/).
 
-🌐 **Live:** [dthornz.github.io/hodgkin-huxley](https://dthornz.github.io/hodgkin-huxley/)
+**Live:** [dthornz.github.io/hodgkin-huxley](https://dthornz.github.io/hodgkin-huxley/)
 
 ---
 
