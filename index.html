@@ -1,0 +1,2881 @@
+﻿<!DOCTY
+PE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hodgkin–Huxley Neuron Model — Asad Mirza</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600&display=swap" rel="stylesheet">
+<style>
+/* ─── Variables ──────────────────────────────────────────── */
+:root{
+  --bg:#f8f9fc;--bg2:#ffffff;--bg3:#f0f2f7;--bg4:#e8ebf2;
+  --border:#d4d9e8;--border2:#c5cad8;
+  --teal:#0b7a6e;--teal-dim:#0b7a6e;--teal-glow:rgba(11,122,110,.08);--teal-light:#e8f4f2;
+  --amber:#b45309;--amber-bg:rgba(180,83,9,.08);
+  --text:#1a202c;--muted:#4a5568;--dim:#718096;--dimmer:#a0aec0;
+  --red:#dc2626;--blue:#1d4ed8;--violet:#7c3aed;--green:#15803d;--orange:#c2410c;
+  --mono:'DM Mono',monospace;--serif:'DM Serif Display',Georgia,serif;
+  --sans:'DM Sans',system-ui,sans-serif;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.05);
+  --shadow-lg:0 4px 16px rgba(0,0,0,.10),0 8px 32px rgba(0,0,0,.06);
+}
+
+/* ─── Reset & Base ───────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15px;line-height:1.7;min-height:100vh}
+a{color:var(--teal);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* ─── Site Nav ───────────────────────────────────────────── */
+.site-nav{position:sticky;top:0;z-index:200;background:var(--nav-bg,rgba(245,246,248,.92));backdrop-filter:blur(16px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;padding:0 24px;height:44px;}
+body.dark-mode .site-nav{background:rgba(6,14,28,.96)!important;border-color:#1c3050!important;}
+.site-nav-logo{font-family:var(--mono);font-size:.8em;color:var(--teal);font-weight:500;letter-spacing:.04em;margin-right:auto;white-space:nowrap;text-decoration:none}
+.site-nav-logo span{color:var(--dim)}
+.site-nav-link{padding:5px 12px;border-radius:6px;font-size:.77em;color:var(--muted);text-decoration:none;transition:all .18s;border:1px solid transparent;font-family:var(--sans);white-space:nowrap}
+.site-nav-link:hover{color:var(--teal);background:var(--teal-glow);border-color:rgba(11,122,110,.15);text-decoration:none}
+.site-nav-link.curr{color:var(--teal);background:var(--teal-glow);border-color:rgba(11,122,110,.2);font-weight:600}
+
+/* ─── Page Layout ────────────────────────────────────────── */
+.page-wrap{max-width:1040px;margin:0 auto;padding:0 48px 80px}
+
+/* ─── Hero ───────────────────────────────────────────────── */
+.hero{padding:52px 0 36px;border-bottom:1px solid var(--border);margin-bottom:48px;text-align:center}
+.hero-kicker{font-family:var(--mono);font-size:.7em;color:var(--teal);letter-spacing:.16em;text-transform:uppercase;margin-bottom:12px}
+.hero-title{font-family:var(--serif);font-size:clamp(2.2em,4.5vw,3.2em);font-weight:400;line-height:1.1;margin-bottom:14px;color:var(--text)}
+.hero-sub{font-size:1.05em;color:var(--muted);max-width:640px;line-height:1.65;margin-bottom:24px;margin-left:auto;margin-right:auto}
+.hero-pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;justify-content:center}
+.pill{padding:4px 12px;border-radius:99px;font-size:.72em;font-family:var(--mono);background:var(--teal-light);color:var(--teal);border:1px solid rgba(11,122,110,.2)}
+.hero-meta{display:flex;gap:28px;flex-wrap:wrap;justify-content:center}
+.hero-stat-num{font-family:var(--serif);font-size:1.7em;color:var(--teal);line-height:1}
+.hero-stat-label{font-size:.72em;color:var(--dim);font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+
+/* ─── Section headings ───────────────────────────────────── */
+.section{margin-bottom:56px}
+.section-num{font-family:var(--mono);font-size:.7em;color:var(--teal);text-transform:uppercase;letter-spacing:.14em;margin-bottom:8px}
+.section-title{font-family:var(--serif);font-size:1.8em;font-weight:400;margin-bottom:14px;color:var(--text)}
+.section-body{font-size:.93em;color:var(--muted);line-height:1.8;overflow:hidden}
+.section-body p{margin-bottom:14px}
+.section-body strong{color:var(--text)}
+.section-divider{height:1px;background:var(--border);margin:48px 0}
+
+/* ─── Callout boxes ──────────────────────────────────────── */
+.callout{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--teal);border-radius:8px;padding:16px 20px;margin:20px 0;font-size:.88em;color:var(--muted)}
+.callout-amber{border-left-color:var(--amber);background:var(--amber-bg)}
+.callout strong{color:var(--text)}
+.callout-title{font-family:var(--mono);font-size:.68em;text-transform:uppercase;letter-spacing:.1em;color:var(--teal);margin-bottom:6px}
+.callout-amber .callout-title{color:var(--amber)}
+
+/* ─── Equation display ───────────────────────────────────── */
+.eq-block{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:20px 24px;margin:20px 0;font-family:var(--mono);font-size:.88em;line-height:2;overflow-x:auto}
+.eq-block .eq-row{display:flex;align-items:baseline;gap:12px;padding:2px 0}
+.eq-label{color:var(--teal);font-weight:500;min-width:60px;flex-shrink:0}
+.eq-main{color:var(--text)}
+.eq-comment{color:var(--dimmer);font-style:italic;font-size:.85em;margin-left:auto;padding-left:20px;white-space:nowrap}
+.eq-sep{height:1px;background:var(--border);margin:10px 0}
+.eq-note{font-size:.8em;color:var(--dim);margin-top:8px;font-family:var(--sans);line-height:1.5}
+sub,sup{font-size:.72em;line-height:1}
+
+/* ─── Circuit diagram ────────────────────────────────────── */
+.circuit-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:24px;margin:24px 0;overflow-x:auto;text-align:center}
+.circuit-wrap svg{max-width:100%;height:auto}
+
+/* ─── SIMULATOR ──────────────────────────────────────────── */
+.sim-section{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:32px -100px;box-shadow:var(--shadow-lg);position:relative;}
+.sim-header{padding:18px 24px;background:linear-gradient(135deg,var(--teal) 0%,#0d8a7c 100%);color:#fff;display:flex;align-items:center;gap:12px}
+.sim-title{font-family:var(--serif);font-size:1.3em;font-weight:400}
+.sim-subtitle{font-size:.8em;opacity:.85;margin-top:2px}
+.sim-status{margin-left:auto;font-family:var(--mono);font-size:.75em;background:rgba(255,255,255,.15);padding:4px 12px;border-radius:99px;display:flex;align-items:center;gap:6px}
+.sim-status .dot{width:7px;height:7px;border-radius:50%;background:#4ade80;animation:pulse 1.5s infinite}
+.sim-status .dot.paused{background:#fbbf24;animation:none}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.sim-body{display:grid;grid-template-columns:400px 1fr;grid-template-rows:1100px;gap:0;align-items:stretch;height:1100px;overflow:hidden}
+
+/* Controls panel */
+.sim-controls{padding:12px 14px 14px;border-right:1px solid var(--border);background:var(--bg3);overflow-y:hidden;overflow-x:hidden;height:100%;min-height:0;box-sizing:border-box;display:grid;grid-template-columns:1fr 1fr;column-gap:14px;align-content:start}
+.ctrl-group{margin-bottom:10px}
+.ctrl-group-label{font-family:var(--mono);font-size:.7em;text-transform:uppercase;letter-spacing:.1em;color:var(--teal);margin-bottom:8px;display:flex;align-items:center;gap:6px;font-weight:600}
+.ctrl-group-label::after{content:'';flex:1;height:1px;background:var(--border2)}
+.ctrl-row{display:flex;flex-direction:column;gap:2px;margin-bottom:8px}
+.ctrl-label{display:flex;justify-content:space-between;align-items:center;font-size:1em;color:var(--muted);width:100%;gap:4px}
+.ctrl-label sub{color:var(--teal)}
+.ctrl-slider{width:100%;accent-color:var(--teal);height:4px;cursor:pointer;margin:0}
+.ctrl-num{font-family:var(--mono);font-size:.82em;color:var(--text);width:64px;border:1px solid var(--border);border-radius:4px;background:var(--bg2);padding:2px 6px;text-align:right;outline:none;transition:border-color .15s;-moz-appearance:textfield}
+.ctrl-num::-webkit-outer-spin-button,.ctrl-num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.ctrl-num:focus{border-color:var(--teal)}.ctrl-num:focus{border-color:var(--teal)}
+.ctrl-select{flex:1;padding:5px 8px;border:1px solid var(--border2);border-radius:6px;background:var(--bg2);color:var(--text);font-size:.8em;font-family:var(--sans);cursor:pointer;outline:none}
+.ctrl-select:focus{border-color:var(--teal)}
+.ctrl-check-row{display:flex;align-items:center;gap:8px;margin-bottom:4px;cursor:pointer}
+.ctrl-check-row input{accent-color:var(--teal);width:14px;height:14px;cursor:pointer;flex-shrink:0}
+.ctrl-check-row label{font-size:.82em;color:var(--muted);cursor:pointer}
+.ctrl-check-row .badge-block{font-size:.65em;font-family:var(--mono);padding:1px 6px;border-radius:4px;background:rgba(220,38,38,.1);color:#dc2626;border:1px solid rgba(220,38,38,.2)}
+
+/* Sim buttons */
+.sim-btns{display:flex;gap:6px;margin-top:14px}
+.btn-sim{flex:1;padding:8px 6px;border-radius:7px;border:none;font-size:.8em;font-weight:600;cursor:pointer;transition:all .15s;font-family:var(--sans)}
+.btn-run{background:var(--teal);color:#fff}
+.btn-run:hover{background:#0a6b60}
+.btn-run:disabled{background:var(--dimmer);cursor:not-allowed}
+.btn-stop{background:var(--bg4);color:var(--muted);border:1px solid var(--border2)}
+.btn-stop:hover{color:var(--red);border-color:var(--red)}
+.btn-reset{background:var(--bg4);color:var(--muted);border:1px solid var(--border2)}
+.btn-reset:hover{color:var(--text);border-color:var(--border2)}
+
+/* Plots panel */
+.sim-plots{display:flex;flex-direction:column;background:var(--bg2);overflow:hidden;min-width:0;flex:1;min-height:0}
+.plot-wrap{display:flex;flex-direction:column;border-bottom:1px solid var(--border);overflow:hidden;min-width:0;flex:1;min-height:80px}
+.plot-wrap:last-child{border-bottom:none}
+.plot-label{display:block;padding:5px 12px 3px;font-family:var(--mono);font-size:.63em;color:var(--dim);text-transform:uppercase;letter-spacing:.08em;background:var(--bg3);border-bottom:1px solid var(--border);flex-shrink:0}
+/* legend moved to block row above canvas */
+
+
+canvas{display:block;width:100%;image-rendering:crisp-edges}
+
+/* AP stats bar */
+.ap-stats{display:flex;gap:0;border-top:1px solid var(--border);background:var(--bg3)}
+.ap-stat{flex:1;padding:8px 12px;text-align:center;border-right:1px solid var(--border)}
+.ap-stat:last-child{border-right:none}
+.ap-stat-num{font-family:var(--mono);font-size:.92em;color:var(--teal);font-weight:600}
+.ap-stat-label{font-size:.62em;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;font-family:var(--mono)}
+
+/* ─── Kinetics & Phase ───────────────────────────────────── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:24px 0}
+.canvas-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:var(--shadow)}
+.canvas-card-header{padding:10px 16px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:baseline;gap:10px}
+.canvas-card-title{font-size:.85em;font-weight:600;color:var(--text)}
+.canvas-card-sub{font-size:.73em;color:var(--dim)}
+.canvas-card canvas{display:block;width:100%}
+
+/* ─── Phase plane ────────────────────────────────────────── */
+.phase-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:var(--shadow);margin:24px 0}
+.phase-header{padding:12px 18px;background:var(--bg3);border-bottom:1px solid var(--border)}
+
+/* ─── Parameter table ────────────────────────────────────── */
+.param-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.85em}
+.param-table th{text-align:left;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);font-family:var(--mono);font-size:.75em;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);font-weight:500}
+.param-table td{padding:7px 12px;border:1px solid var(--border);color:var(--muted)}
+.param-table td:first-child{font-family:var(--mono);color:var(--text);font-weight:500}
+.param-table td:nth-child(2){color:var(--teal);font-family:var(--mono)}
+.param-table tr:hover td{background:var(--bg3)}
+
+/* ─── References ─────────────────────────────────────────── */
+.ref-list{list-style:none;margin:0;padding:0}
+.ref-item{padding:12px 0;border-bottom:1px solid var(--border);display:grid;grid-template-columns:32px 1fr;gap:8px;font-size:.85em;color:var(--muted);line-height:1.55}
+.ref-item:last-child{border-bottom:none}
+.ref-num{font-family:var(--mono);color:var(--teal);font-weight:600;padding-top:1px}
+.ref-item em{color:var(--text);font-style:normal;font-weight:500}
+
+/* ─── Responsive ─────────────────────────────────────────── */
+@media(max-width:800px){
+  .sim-body{
+    grid-template-columns:1fr;
+    grid-template-rows:auto auto;
+    height:auto;
+    min-height:unset;
+    overflow:visible;
+  }
+  .sim-controls{
+    border-right:none;
+    border-bottom:1px solid var(--border);
+    height:auto;
+    min-height:unset;
+    overflow-y:visible;
+    max-height:60vh;
+    overflow-y:auto;
+  }
+  .sim-plots{
+    min-height:420px;
+    flex:none;
+    height:420px;
+  }
+  .plot-wrap{min-height:80px;flex:1}
+  .two-col{grid-template-columns:1fr}
+  .page-wrap{padding:0 16px 60px}
+  .hero{padding:32px 0 28px}
+  .sim-section{margin:20px 0!important;border-radius:8px;width:100%}
+}
+
+
+/* ───────────────────────────────────────────────────────────
+   SITE-WIDE ACCESSIBILITY PANEL  +  LIGHT/DARK THEME SYSTEM
+   Default: light mode. Dark mode activated by .dark-mode on <body>.
+─────────────────────────────────────────────────────────── */
+
+/* ── Floating gear button ── */
+.acc-btn{
+  position:fixed;bottom:22px;right:22px;z-index:9100;
+  width:38px;height:38px;border-radius:50%;
+  background:#0b7a6e;color:#fff;border:none;
+  cursor:pointer;font-size:1em;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 12px rgba(0,0,0,.2);transition:transform .2s;
+}
+.acc-btn:hover{transform:scale(1.1)}
+
+/* ── Panel ── */
+.acc-panel{
+  position:fixed;bottom:70px;right:22px;z-index:9100;
+  width:220px;padding:16px 18px 12px;border-radius:12px;
+  border:1px solid #d4d9e8;background:#fff;
+  box-shadow:0 8px 32px rgba(0,0,0,.13);
+  opacity:0;transform:translateY(8px) scale(.97);
+  pointer-events:none;transition:all .2s cubic-bezier(.4,0,.2,1);
+}
+.acc-panel.open{opacity:1;transform:translateY(0) scale(1);pointer-events:all}
+.acc-panel-title{font-size:.77em;font-weight:600;margin-bottom:13px;color:#1a202c}
+.acc-row{margin-bottom:12px}
+.acc-row-label{font-size:.65em;text-transform:uppercase;letter-spacing:.1em;color:#9ca3af;margin-bottom:6px}
+.acc-toggle-row{display:flex;align-items:center;justify-content:space-between}
+.acc-toggle-label{font-size:.81em;color:#4a5568}
+.acc-switch{position:relative;width:38px;height:20px;flex-shrink:0}
+.acc-switch input{opacity:0;width:0;height:0}
+.acc-slider{position:absolute;inset:0;background:#d1d5db;border-radius:99px;cursor:pointer;transition:background .18s}
+.acc-slider::before{content:'';position:absolute;width:14px;height:14px;border-radius:50%;left:3px;top:3px;background:#fff;transition:transform .18s}
+.acc-switch input:checked + .acc-slider{background:#0b7a6e}
+.acc-switch input:checked + .acc-slider::before{transform:translateX(18px)}
+.acc-btn-group{display:flex;gap:4px}
+.acc-opt{flex:1;padding:4px;border:1px solid #d4d9e8;border-radius:5px;
+  background:#f5f6f8;color:#718096;font-size:.72em;cursor:pointer;text-align:center;
+  transition:all .15s;font-family:inherit;line-height:1.4}
+.acc-opt:hover{color:#0b7a6e;border-color:#0b7a6e;background:rgba(11,122,110,.06)}
+.acc-opt.active{color:#0b7a6e;border-color:#0b7a6e;background:rgba(11,122,110,.08);font-weight:600}
+
+/* ── Dark mode acc-panel overrides ── */
+body.dark-mode .acc-panel{background:#0a1628;border-color:#1c3050}
+body.dark-mode .acc-panel-title{color:#e2e8f0}
+body.dark-mode .acc-toggle-label{color:#94a3b8}
+body.dark-mode .acc-opt{background:#132240;border-color:#1c3050;color:#7a90ae}
+body.dark-mode .acc-opt.active{background:rgba(45,212,191,.15);border-color:#2dd4bf;color:#2dd4bf}
+
+/* ── Font variants ── */
+body.font-serif,body.font-serif *:not(code):not(pre){font-family:'DM Serif Display',Georgia,serif!important}
+body.font-mono,body.font-mono *:not(code):not(pre){font-family:'DM Mono','Courier New',monospace!important}
+
+/* ── Size variants ── */
+body.size-sm{font-size:13px!important}
+body.size-md{font-size:15px!important}
+body.size-lg{font-size:17px!important}
+
+/* ═══════════════════════════════════════════════════════════
+   DARK MODE — comprehensive overrides for every page
+   All rules use !important to beat any hardcoded backgrounds.
+══════════════════════════════════════════════════════════ */
+body.dark-mode{
+  background:#060e1c!important;
+  color:#e2e8f0!important;
+}
+
+/* ── Navigation ── */
+body.dark-mode .site-nav,
+body.dark-mode .topbar{
+  background:rgba(6,14,28,.96)!important;
+  border-color:#1c3050!important;
+}
+body.dark-mode .site-nav-link,
+body.dark-mode .topbar-link{color:#7a90ae!important}
+body.dark-mode .site-nav-link:hover,
+body.dark-mode .topbar-link:hover{color:#2dd4bf!important;background:rgba(45,212,191,.08)!important}
+body.dark-mode .site-nav-link.curr,
+body.dark-mode .topbar-link.active{color:#2dd4bf!important;background:rgba(45,212,191,.08)!important;border-color:rgba(45,212,191,.2)!important}
+body.dark-mode .site-nav-logo,
+body.dark-mode .topbar-logo{color:#2dd4bf!important}
+body.dark-mode .nav-link{color:#7a90ae!important}
+body.dark-mode .nav-link:hover,body.dark-mode .nav-link.active{color:#2dd4bf!important;background:rgba(45,212,191,.08)!important}
+body.dark-mode .nav-logo{color:#2dd4bf!important}
+body.dark-mode .nav{background:rgba(6,14,28,.96)!important;border-color:#1c3050!important}
+
+/* ── Page / layout backgrounds ── */
+body.dark-mode main,
+body.dark-mode .page-wrap,
+body.dark-mode .content,
+body.dark-mode .layout,
+body.dark-mode .layout-wrapper,
+body.dark-mode .main-content{background:transparent!important}
+
+body.dark-mode .sidebar{background:#0a1628!important;border-color:#1c3050!important;color:#e2e8f0!important}
+body.dark-mode .nav-item{color:#7a90ae!important}
+body.dark-mode .nav-item:hover,body.dark-mode .nav-item.active{color:#2dd4bf!important;background:rgba(45,212,191,.08)!important}
+body.dark-mode .nav-section-label{color:#3d5470!important}
+body.dark-mode .nav-count{background:#0f1f38!important;color:#3d5470!important}
+
+/* ── Cards & panels ── */
+body.dark-mode .card,
+body.dark-mode .proj-card,
+body.dark-mode .calc-card,
+body.dark-mode .sim-section,
+body.dark-mode .canvas-card,
+body.dark-mode .phase-wrap{background:#0a1628!important;border-color:#1c3050!important}
+body.dark-mode .card:hover,
+body.dark-mode .proj-card:hover{border-color:#1a8a7d!important}
+body.dark-mode .card-title,
+body.dark-mode .proj-title{color:#e2e8f0!important}
+body.dark-mode .card-desc,
+body.dark-mode .proj-desc,
+body.dark-mode .card-subtitle{color:#7a90ae!important}
+body.dark-mode .card-tag,
+body.dark-mode .proj-tag,
+body.dark-mode .section-tag,
+body.dark-mode .hero-eyebrow,
+body.dark-mode .page-eyebrow{color:#2dd4bf!important}
+
+/* ── Hero section ── */
+body.dark-mode .hero{border-color:#1c3050!important}
+body.dark-mode .hero-title,
+body.dark-mode .page-title,
+body.dark-mode .hero-name,
+body.dark-mode .section-title{color:#e2e8f0!important}
+body.dark-mode .hero-sub,
+body.dark-mode .section-body,
+body.dark-mode .page-desc{color:#7a90ae!important}
+body.dark-mode .hero-links .hero-badge,
+body.dark-mode .hero-badge{background:rgba(28,48,80,.8)!important;border-color:#1c3050!important;color:#7a90ae!important}
+body.dark-mode .hero-badges .pill{background:rgba(45,212,191,.12)!important;border-color:rgba(45,212,191,.2)!important;color:#2dd4bf!important}
+
+/* ── Stats & metrics ── */
+body.dark-mode .stats-ribbon,
+body.dark-mode .hero-meta{background:transparent!important}
+body.dark-mode .stat-card{background:#0a1628!important;border-color:#1c3050!important}
+body.dark-mode .stat-label,body.dark-mode .hero-stat-label{color:#3d5470!important}
+
+/* ── Calc page specifics ── */
+body.dark-mode .sim-controls{background:#0f1f38!important}
+body.dark-mode .sim-plots{background:#0a1628!important}
+body.dark-mode .ctrl-group-label{color:#2dd4bf!important}
+body.dark-mode .ctrl-label,body.dark-mode .ctrl-val{color:#94a3b8!important}
+body.dark-mode .ctrl-select,
+body.dark-mode .field,
+body.dark-mode select,
+body.dark-mode input[type=number],
+body.dark-mode input[type=text]{background:#132240!important;border-color:#1c3050!important;color:#e2e8f0!important}
+body.dark-mode .card-header,
+body.dark-mode .canvas-card-header{background:#0f1f38!important;border-color:#1c3050!important}
+body.dark-mode .canvas-card-title{color:#e2e8f0!important}
+body.dark-mode .canvas-card-sub{color:#7a90ae!important}
+body.dark-mode .formula,body.dark-mode .eq-block{background:#0f1f38!important;border-color:#1c3050!important}
+body.dark-mode .output{background:#0f1f38!important;border-color:#1c3050!important}
+body.dark-mode .output-header{background:rgba(45,212,191,.07)!important;border-color:#1c3050!important}
+body.dark-mode .out-row{border-color:rgba(28,48,80,.6)!important}
+body.dark-mode .out-label{color:#7a90ae!important}
+body.dark-mode .btn-calc{background:#2dd4bf!important;color:#06111f!important}
+body.dark-mode .btn-stop,body.dark-mode .btn-reset{background:#132240!important;color:#7a90ae!important;border-color:#1c3050!important}
+body.dark-mode .param-table th{background:#0f1f38!important;border-color:#1c3050!important;color:#3d5470!important}
+body.dark-mode .param-table td{border-color:#1c3050!important}
+body.dark-mode .conv-table td,body.dark-mode .conv-table th{border-color:#1c3050!important}
+
+/* ── HH page ── */
+body.dark-mode .circuit-wrap,
+body.dark-mode .callout{background:#0a1628!important;border-color:#1c3050!important}
+body.dark-mode .eq-block{color:#f59e0b!important}
+body.dark-mode .section-body p,body.dark-mode .section-body{color:#7a90ae!important}
+body.dark-mode .section-num{color:#2dd4bf!important}
+body.dark-mode .ap-stats{background:#0f1f38!important;border-color:#1c3050!important}
+body.dark-mode .ap-stat{border-color:#1c3050!important}
+body.dark-mode .ap-stat-label{color:#3d5470!important}
+body.dark-mode .sim-header{background:linear-gradient(135deg,#0a6b60 0%,#0d8a7c 100%)!important}
+body.dark-mode .ref-item{border-color:#1c3050!important;color:#7a90ae!important}
+body.dark-mode .param-table{background:transparent!important}
+body.dark-mode .hero-meta .hero-stat-num,body.dark-mode .hero-stat-num{color:#2dd4bf!important}
+body.dark-mode .hero-pills .pill{background:rgba(45,212,191,.1)!important;border-color:rgba(45,212,191,.2)!important}
+
+/* ── Modals ── */
+body.dark-mode .modal-overlay{background:rgba(2,6,14,.88)!important}
+body.dark-mode .modal{background:#0a1628!important;border-color:#1c3050!important}
+body.dark-mode .modal-body,.modal-title{color:#e2e8f0!important}
+body.dark-mode .modal-subtitle,.modal-text{color:#7a90ae!important}
+body.dark-mode .modal-section-label{color:#2dd4bf!important}
+body.dark-mode .modal-section-label::after{background:#1c3050!important}
+body.dark-mode .modal-metrics{border-color:#1c3050!important}
+body.dark-mode .modal-metric{border-color:#1c3050!important;background:transparent!important}
+body.dark-mode .modal-link{background:#0f1f38!important;border-color:#1c3050!important}
+body.dark-mode .filter-btn{background:#0f1f38!important;border-color:#1c3050!important;color:#7a90ae!important}
+body.dark-mode .filter-btn.active{background:#2dd4bf!important;color:#06111f!important;border-color:#2dd4bf!important}
+body.dark-mode .modal-close{background:#0f1f38!important;border-color:#1c3050!important;color:#7a90ae!important}
+body.dark-mode .modal-media{background:#0f1f38!important}
+body.dark-mode .modal-eq{background:#0f1f38!important;border-color:#1c3050!important}
+
+/* ── Projects ── */
+body.dark-mode .proj-media{background:#0f1f38!important}
+body.dark-mode .ph-icon,.dark-mode .ph-text{color:#3d5470!important}
+body.dark-mode .proj-media-badge{background:rgba(6,14,28,.9)!important;border-color:rgba(45,212,191,.25)!important}
+body.dark-mode .proj-footer{border-color:#1c3050!important}
+body.dark-mode .proj-year{color:#3d5470!important}
+body.dark-mode .proj-link{background:#0f1f38!important;border-color:#1c3050!important;color:#7a90ae!important}
+body.dark-mode .proj-link:hover{border-color:#2dd4bf!important;color:#2dd4bf!important}
+body.dark-mode .page-hero,.dark-mode .projects-wrap{background:transparent!important}
+
+/* ── index landing cards ── */
+body.dark-mode .card-chips .chip{background:rgba(45,212,191,.1)!important;border-color:rgba(45,212,191,.2)!important;color:#2dd4bf!important}
+body.dark-mode .card::before{opacity:0}
+body.dark-mode footer{border-color:#1c3050!important;color:#3d5470!important}
+body.dark-mode footer a{color:#3d5470!important}
+
+/* ── Divider / misc ── */
+body.dark-mode .section-divider{background:#1c3050!important}
+body.dark-mode .callout-amber{background:rgba(245,158,11,.08)!important;border-color:rgba(245,158,11,.25)!important}
+body.dark-mode .callout-title{color:#7a90ae!important}
+body.dark-mode .callout-amber .callout-title{color:#f59e0b!important}
+body.dark-mode .hero{border-color:#1c3050!important}
+
+
+
+
+
+
+.plot-wrap canvas{display:block;width:100%;flex:1;min-height:0}
+
+.plot-legend{display:flex;gap:10px;padding:3px 12px 3px;background:var(--bg3);border-bottom:1px solid var(--border);flex-shrink:0}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:.65em;color:var(--muted);font-family:var(--mono)}
+.legend-dot{width:10px;height:3px;border-radius:2px;flex-shrink:0}
+.ctrl-label-txt{color:var(--text);font-size:.84em;font-weight:500;white-space:nowrap;display:flex;align-items:baseline;gap:3px}.ctrl-unit{color:var(--dim);font-size:.72em;font-family:var(--mono);margin-left:3px}
+
+.ctrl-group.full{grid-column:1/-1}
+.ctrl-group-label::after{flex:1;height:1px;background:var(--border)}
+
+/* ─── Figure / image blocks ────────────────────────────── */
+.fig-row{display:flex;gap:20px;margin:24px 0;align-items:flex-start;flex-wrap:wrap}
+.fig-item{flex:1;min-width:140px;max-width:280px}
+.fig-item img{width:100%;border-radius:8px;border:1px solid var(--border);display:block;object-fit:cover}
+.fig-item .fig-cap{font-size:.75em;color:var(--dim);margin-top:6px;text-align:center;font-family:var(--mono);font-style:italic;line-height:1.4}
+.fig-portrait{width:100%;border-radius:8px;border:2px solid var(--border);background:var(--bg3);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px 12px;min-height:160px}
+.fig-portrait-name{font-family:var(--serif);font-size:1em;color:var(--text);margin-top:8px;text-align:center}
+.fig-portrait-dates{font-size:.72em;color:var(--dim);font-family:var(--mono);margin-top:2px}
+.fig-portrait-icon{font-size:3em;line-height:1;opacity:.7}
+.fig-wrap{margin:24px 0;text-align:center}
+.fig-wrap img{max-width:100%;border-radius:8px;border:1px solid var(--border)}
+.fig-wrap .fig-cap{font-size:.78em;color:var(--dim);margin-top:8px;font-style:italic;font-family:var(--mono)}
+.fig-aside{float:right;margin:0 0 18px 24px;max-width:220px;clear:right}
+.fig-aside img{width:100%;border-radius:8px;border:1px solid var(--border)}
+.fig-aside .fig-cap{font-size:.72em;color:var(--dim);margin-top:5px;text-align:center;font-family:var(--mono);font-style:italic;line-height:1.4}
+
+.ctrl-row.disabled{opacity:.35;pointer-events:none}
+
+/* ─── Simulator Tabs ──────────────────────────────────────── */
+.sim-tabs{display:flex;gap:0;border-bottom:2px solid var(--border);background:var(--bg3);padding:0 24px}
+.sim-tab{padding:10px 20px;font-family:var(--mono);font-size:.78em;font-weight:600;letter-spacing:.05em;
+  color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;
+  transition:color .15s,border-color .15s;white-space:nowrap}
+.sim-tab:hover{color:var(--text)}
+.sim-tab.active{color:var(--teal);border-bottom-color:var(--teal)}
+.sim-panel{display:none}.sim-panel.active{display:grid}
+
+/* ─── Voltage Clamp Panel ─────────────────────────────────── */
+.vc-controls{padding:12px 14px 14px;border-right:1px solid var(--border);background:var(--bg3);
+  overflow-y:hidden;overflow-x:hidden;height:100%;min-height:0;box-sizing:border-box;
+  display:grid;grid-template-columns:1fr 1fr;column-gap:14px;align-content:start}
+.vc-plots{display:flex;flex-direction:column;background:var(--bg2);overflow:hidden;min-width:0;min-height:0}
+.iv-panel{padding:12px 14px;display:flex;flex-direction:column;gap:8px;overflow:hidden;flex:1;min-height:0}
+.iv-plot-wrap{flex:1;min-height:120px;position:relative}
+.iv-controls-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.iv-legend{display:flex;gap:12px;font-family:var(--mono);font-size:.7em;color:var(--dim);flex-wrap:wrap}
+.iv-legend span{display:flex;align-items:center;gap:4px}
+.iv-legend i{width:20px;height:3px;display:inline-block;border-radius:2px}
+.vc-run-strip{display:flex;gap:6px;padding:10px 14px;border-top:1px solid var(--border);background:var(--bg3);flex-wrap:wrap;align-items:center}
+.vc-run-strip .vc-step-chip{font-family:var(--mono);font-size:.68em;padding:2px 8px;
+  border:1px solid var(--border2);border-radius:4px;cursor:pointer;color:var(--dim);background:var(--bg2)}
+.vc-run-strip .vc-step-chip:hover{color:var(--teal);border-color:var(--teal)}
+.vc-run-strip .vc-step-chip.active{color:var(--teal);border-color:var(--teal);background:rgba(11,122,110,.08)}
+.iv-table{font-family:var(--mono);font-size:.7em;color:var(--dim);overflow-y:auto;max-height:120px;
+  border:1px solid var(--border);border-radius:6px;background:var(--bg)}
+.iv-table table{width:100%;border-collapse:collapse}
+.iv-table th{padding:4px 8px;border-bottom:1px solid var(--border);color:var(--text);font-weight:600;text-align:right;position:sticky;top:0;background:var(--bg3)}
+.iv-table td{padding:3px 8px;border-bottom:1px solid var(--border2);text-align:right}
+.iv-table tr:last-child td{border-bottom:none}
+.vc-badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:.65em;font-family:var(--mono);
+  font-weight:700;margin-left:6px;vertical-align:middle}
+.vc-badge.na{background:rgba(220,38,38,.12);color:#dc2626}
+.vc-badge.k{background:rgba(29,78,216,.12);color:#1d4ed8}
+
+/* ─── Simulator Tabs ─────────────────────────────────────── */
+.sim-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg3);padding:0 20px}
+.sim-tab{padding:10px 20px;font-size:.82em;font-family:var(--mono);font-weight:600;letter-spacing:.04em;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;user-select:none;text-transform:uppercase}
+.sim-tab:hover{color:var(--text)}
+.sim-tab.active{color:var(--teal);border-bottom-color:var(--teal)}
+.sim-tab-panel{display:none}
+.sim-tab-panel.active{display:flex;flex-direction:row;height:1100px;overflow:hidden}
+
+/* ─── Voltage Clamp Layout ───────────────────────────────── */
+.vc-controls{width:400px;min-width:400px;background:var(--bg3);border-right:1px solid var(--border);padding:12px 14px;box-sizing:border-box;overflow-y:hidden;display:grid;grid-template-columns:1fr 1fr;column-gap:14px;align-content:start;min-height:0}
+.vc-plots{flex:1;display:flex;flex-direction:column;background:var(--bg2);overflow:hidden;min-width:0;min-height:0}
+.vc-plot-wrap{display:flex;flex-direction:column;border-bottom:1px solid var(--border);overflow:hidden;min-width:0;flex:1;min-height:60px}
+.vc-plot-wrap:last-child{border-bottom:none;flex:1.5}
+.vc-plot-wrap canvas{display:block;width:100%;flex:1;min-height:0}
+.vc-plot-label{padding:5px 14px 0;font-family:var(--mono);font-size:.67em;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);font-weight:600;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.iv-legend{display:flex;gap:14px;margin-left:auto}
+.iv-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* ─── Voltage Clamp Controls ─────────────────────────────── */
+.vc-btn{padding:7px 12px;border:1px solid var(--border2);border-radius:6px;background:var(--bg2);font-size:.75em;font-family:var(--mono);cursor:pointer;color:var(--muted);transition:all .15s;font-weight:600}
+.vc-btn:hover{color:var(--teal);border-color:var(--teal)}
+.vc-btn.primary{background:var(--teal);color:#fff;border-color:var(--teal)}
+.vc-btn.primary:hover{background:#0a9082}
+.vc-btn.danger{border-color:#dc2626;color:#dc2626}
+.vc-btn.danger:hover{background:#dc2626;color:#fff}
+.vc-btn-row{display:flex;gap:6px;flex-wrap:wrap;grid-column:1/-1;margin-top:4px}
+.vc-sweep-status{font-family:var(--mono);font-size:.72em;color:var(--dim);grid-column:1/-1;min-height:18px;margin-top:2px}
+.vc-iv-table{grid-column:1/-1;font-family:var(--mono);font-size:.7em;color:var(--dim);overflow-y:auto;max-height:90px;border:1px solid var(--border);border-radius:4px;padding:4px 6px}
+.vc-iv-table table{width:100%;border-collapse:collapse}
+.vc-iv-table th{color:var(--muted);font-weight:600;padding:1px 4px;text-align:right}
+.vc-iv-table td{padding:1px 4px;text-align:right}
+.vc-iv-table tr:nth-child(even){background:var(--bg3)}
+
+/* ── Nav dropdown ── */
+.nav-dropdown { position: relative; }
+.nav-dropdown-menu {
+  position: absolute; top: 100%; left: 50%;
+  background: rgba(255,255,255,.97); backdrop-filter: blur(16px);
+  border: 1px solid var(--border); border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.1);
+  min-width: 170px; padding: 6px;
+  padding-top: 12px;
+  margin-top: -6px;
+  opacity: 0; pointer-events: none;
+  transform: translateX(-50%) translateY(-4px);
+  transition: opacity .15s, transform .15s;
+  z-index: 9999;
+}
+.nav-dropdown:hover .nav-dropdown-menu,
+.nav-dropdown-menu:hover {
+  opacity: 1; pointer-events: all;
+  transform: translateX(-50%) translateY(0);
+}
+.nav-dropdown-item {
+  display: block; padding: 7px 14px; border-radius: 6px;
+  font-size: .77em; color: var(--muted); text-decoration: none;
+  font-family: var(--sans); white-space: nowrap;
+  transition: all .15s;
+}
+.nav-dropdown-item:hover { color: var(--teal); background: var(--teal-glow); }
+body.dark-mode .nav-dropdown-menu { background: rgba(10,22,40,.97); border-color: #1c3050; }
+</style>
+</head>
+<body class="light-mode">
+
+<!-- ── Site Nav ─────────────────────────────────────────── -->
+<div class="site-nav">
+  <a class="site-nav-logo" href="https://dthornz.github.io/website-cv-tools/">A.Mirza <span>/</span> site</a>
+  <a class="site-nav-link" href="https://dthornz.github.io/website-cv-tools/">Home</a>
+  <a class="site-nav-link" href="https://dthornz.github.io/website-cv-tools/AsadMirza_CV.html">CV</a>
+  <div class="nav-dropdown">
+  <a class="site-nav-link curr" href="https://dthornz.github.io/website-cv-tools/projects.html">Projects ▾</a>
+  <div class="nav-dropdown-menu">
+    <a class="nav-dropdown-item" style="color:var(--teal);font-weight:600" href="#">🧠 HH Neuron Model</a>
+    <a class="nav-dropdown-item" href="https://dthornz.github.io/maxwell-boltzmann/">⚛ MB Gas Simulator</a>
+    <a class="nav-dropdown-item" href="https://dthornz.github.io/lbm-cfd/">🌊 LBM CFD Simulator</a>
+    <a class="nav-dropdown-item" href="https://dthornz.github.io/eng-fea-cfd-calc/">⚙ FEA / CFD Calc</a>
+    <a class="nav-dropdown-item" href="https://dthornz.github.io/website-cv-tools/dissertation.html">📋 PhD Dissertation</a>
+    <a class="nav-dropdown-item" href="https://dthornz.github.io/academic-ref-validator/">📑 Reference Validator</a>
+  </div>
+</div>
+  </div>
+
+<div class="page-wrap">
+
+<!-- ── Hero ─────────────────────────────────────────────── -->
+<div class="hero">
+  <div class="hero-kicker">Interactive Computational Neuroscience</div>
+  <h1 class="hero-title">The Hodgkin–Huxley<br>Neuron Model</h1>
+  <p class="hero-sub">A fully interactive simulation of the landmark 1952 model describing how action potentials are initiated and propagated in neurons — built on the Nobel Prize-winning quantitative framework for membrane ionic currents.</p>
+  <div class="hero-pills">
+    <span class="pill">RK4 Simulation</span>
+    <span class="pill">Real-Time Plotting</span>
+    <span class="pill">Adjustable Parameters</span>
+    <span class="pill">Gate Kinetics</span>
+    <span class="pill">Phase Plane</span>
+    <span class="pill">Temperature Scaling</span>
+  </div>
+  <div class="hero-meta">
+    <div><div class="hero-stat-num">1952</div><div class="hero-stat-label">Original Publication</div></div>
+    <div><div class="hero-stat-num">1963</div><div class="hero-stat-label">Nobel Prize</div></div>
+    <div><div class="hero-stat-num">4</div><div class="hero-stat-label">Coupled ODEs</div></div>
+    <div><div class="hero-stat-num">dt = 0.01 ms</div><div class="hero-stat-label">RK4 Integration</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     §1  THE DISCOVERY
+══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-num">§ 1</div>
+  <h2 class="section-title">The Discovery: Squid Axons and the Action Potential</h2>
+  <div class="section-body">
+    
+  <div class="fig-row" style="float:right;margin:0 0 16px 20px;max-width:300px;clear:right">
+    <div class="fig-item" style="max-width:145px">
+      <img src="https://en.wikipedia.org/wiki/Special:FilePath/Alan_Lloyd_Hodgkin.jpg?width=220"
+           alt="Alan Lloyd Hodgkin, 1963"
+           onerror="this.style.display='none'">
+      <div class="fig-cap">Alan L. Hodgkin<br>1914 – 1998</div>
+    </div>
+    <div class="fig-item" style="max-width:145px">
+      <img src="https://en.wikipedia.org/wiki/Special:FilePath/Andrew_Fielding_Huxley_nobel.jpg?width=220"
+           alt="Andrew Fielding Huxley, 1963"
+           onerror="this.style.display='none'">
+      <div class="fig-cap">Andrew F. Huxley<br>1917 – 2012</div>
+    </div>
+  </div>
+
+    <p>Working at the Marine Biological Association laboratory in Plymouth, England between 1947 and 1952, <strong>Alan Lloyd Hodgkin</strong> and <strong>Andrew Fielding Huxley</strong> performed a series of elegant voltage-clamp experiments on the <em>Loligo forbesi</em> giant squid axon. This particular axon — 0.5–0.8 mm in diameter — was large enough to insert a wire electrode directly into its interior, making it the ideal preparation for measuring membrane currents with then-unprecedented precision. Their findings, published across five landmark papers in the <em>Journal of Physiology</em> in 1952, constituted the first complete quantitative description of the ionic mechanisms underlying the action potential.<sup>[1]</sup></p>
+    <div class="fig-aside">
+      <img src="https://en.wikipedia.org/wiki/Special:FilePath/Loligo_vulgaris.jpg?width=300"
+           alt="Loligo forbesi — European longfin squid"
+           onerror="this.style.display='none'">
+      <div class="fig-cap"><em>Loligo forbesi</em> — the longfin inshore squid. Its giant axon (≈0.5 mm diameter) was the key preparation used by H&H.<br>© Hans Hillewaert / CC BY-SA 4.0</div>
+    </div>
+
+
+    <p>The core insight of Hodgkin and Huxley was that the action potential — the brief, stereotyped electrical impulse by which neurons communicate — arises from the coordinated, voltage-dependent opening and closing of ion-selective channels in the cell membrane. By holding the membrane potential at fixed values (voltage clamp) and measuring the resulting ionic currents, they could isolate and characterize separate <strong>sodium (Na⁺)</strong> and <strong>potassium (K⁺)</strong> conductances as functions of both voltage and time.</p>
+    <p>Their mathematical model, derived entirely from experimental data, was able to <em>predict</em> action potential shape, conduction velocity, refractory period, and threshold — phenomena that had been observed but never explained from first principles. For this work, Hodgkin and Huxley (together with Sir John Eccles for his work on synaptic transmission) received the <strong>Nobel Prize in Physiology or Medicine in 1963</strong>.<sup>[2]</sup></p>
+  </div>
+  <div class="callout">
+    <div class="callout-title">Historical Context</div>
+    The squid giant axon is part of the squid's escape reflex — it must conduct signals rapidly enough to coordinate jet propulsion. Its large diameter (up to 1 mm, compared to ~1 µm in human neurons) reduces axial resistance and increases conduction velocity to ~25 m/s without myelin. This evolutionary accident gave neuroscience its most tractable preparation for nearly five decades.
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     §2  THE EQUIVALENT CIRCUIT
+══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-num">§ 2</div>
+  <h2 class="section-title">The Equivalent Circuit Model</h2>
+  <div class="section-body">
+    <p>The Hodgkin–Huxley model represents a small patch of excitable membrane as an electrical circuit. The lipid bilayer acts as a <strong>capacitor</strong> (C<sub>m</sub>), storing charge across its ~7 nm thickness. Embedded ion channels are modeled as <strong>variable conductances</strong> (g<sub>Na</sub>, g<sub>K</sub>) in series with <strong>batteries</strong> representing the Nernst equilibrium potentials (E<sub>Na</sub>, E<sub>K</sub>). A <strong>leak conductance</strong> (g<sub>L</sub>) captures the passive background permeability — primarily Cl⁻ and small K⁺ leakage — which stabilizes the resting potential.</p>
+  </div>
+
+  <div class="circuit-wrap">
+    <svg viewBox="0 0 720 260" width="100%" height="auto" font-family="'DM Mono', monospace">
+      <defs>
+        <marker id="arr" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L6,3 Z" fill="#0b7a6e"/>
+        </marker>
+      </defs>
+
+      <!-- ─── Rail labels ─── -->
+      <text x="14" y="38" font-size="10" fill="#718096" text-anchor="middle">Out</text>
+      <text x="14" y="200" font-size="10" fill="#718096" text-anchor="middle">In</text>
+
+      <!-- ─── Top and bottom membrane rails ─── -->
+      <line x1="28" y1="35" x2="700" y2="35" stroke="#374151" stroke-width="2"/>
+      <line x1="28" y1="195" x2="700" y2="195" stroke="#374151" stroke-width="2"/>
+
+      <!-- ═══ Iext branch (x=70) ═══ -->
+      <!-- Standard IEEE current source: circle with arrow inside -->
+      <line x1="70" y1="35" x2="70" y2="78" stroke="#374151" stroke-width="2"/>
+      <circle cx="70" cy="105" r="24" fill="white" stroke="#0b7a6e" stroke-width="2"/>
+      <!-- Arrow pointing upward (conventional current direction into top rail) -->
+      <line x1="70" y1="122" x2="70" y2="92" stroke="#0b7a6e" stroke-width="2"
+            marker-end="url(#arr)"/>
+      <line x1="70" y1="129" x2="70" y2="195" stroke="#374151" stroke-width="2"/>
+      <!-- Label -->
+      <text x="100" y="100" font-size="12" font-weight="bold" fill="#0b7a6e">I</text>
+      <text x="110" y="104" font-size="9" fill="#0b7a6e">ext</text>
+
+      <!-- ═══ Cm branch (x=185) ═══ -->
+      <line x1="185" y1="35" x2="185" y2="82" stroke="#374151" stroke-width="2"/>
+      <!-- Capacitor plates -->
+      <line x1="165" y1="84" x2="205" y2="84" stroke="#374151" stroke-width="4"/>
+      <line x1="165" y1="94" x2="205" y2="94" stroke="#374151" stroke-width="4"/>
+      <line x1="185" y1="94" x2="185" y2="195" stroke="#374151" stroke-width="2"/>
+      <!-- Label -->
+      <text x="212" y="82" font-size="12" fill="#1a202c" font-weight="bold">C</text>
+      <text x="221" y="86" font-size="9" fill="#1a202c">m</text>
+      <text x="210" y="97" font-size="9" fill="#718096">1 µF/cm²</text>
+
+      <!-- ═══ Na⁺ branch (x=335) ═══ -->
+      <line x1="335" y1="35"  x2="335" y2="60"  stroke="#374151" stroke-width="2"/>
+      <!-- Variable resistor box -->
+      <rect x="322" y="60" width="26" height="16" fill="white" stroke="#dc2626" stroke-width="2" rx="2"/>
+      <!-- Diagonal arrow for variable conductance -->
+      <line x1="322" y1="78" x2="350" y2="58" stroke="#dc2626" stroke-width="1.5"/>
+      <polygon points="350,58 344,60 346,54" fill="#dc2626"/>
+      <line x1="335" y1="76"  x2="335" y2="108" stroke="#374151" stroke-width="2"/>
+      <!-- Battery -->
+      <line x1="325" y1="110" x2="345" y2="110" stroke="#374151" stroke-width="3.5"/>
+      <line x1="328" y1="117" x2="342" y2="117" stroke="#374151" stroke-width="1.5"/>
+      <line x1="335" y1="119" x2="335" y2="195" stroke="#374151" stroke-width="2"/>
+      <!-- Polarity -->
+      <text x="315" y="112" font-size="11" fill="#dc2626" font-weight="bold">+</text>
+      <text x="315" y="122" font-size="11" fill="#dc2626" font-weight="bold">−</text>
+      <!-- Conductance label: ḡNa · m³h on two lines -->
+      <text x="283" y="53" font-size="11" fill="#dc2626" font-weight="bold">ḡ<tspan font-size="8" dy="2">Na</tspan></text>
+      <text x="305" y="53" font-size="10" fill="#dc2626">· m³h</text>
+      <!-- Reversal label -->
+      <text x="286" y="138" font-size="11" fill="#dc2626">E<tspan font-size="8" dy="2">Na</tspan></text>
+      <text x="286" y="152" font-size="9" fill="#718096">+50 mV</text>
+
+      <!-- ═══ K⁺ branch (x=475) ═══ -->
+      <line x1="475" y1="35"  x2="475" y2="60"  stroke="#374151" stroke-width="2"/>
+      <rect x="462" y="60" width="26" height="16" fill="white" stroke="#1d4ed8" stroke-width="2" rx="2"/>
+      <line x1="462" y1="78" x2="490" y2="58" stroke="#1d4ed8" stroke-width="1.5"/>
+      <polygon points="490,58 484,60 486,54" fill="#1d4ed8"/>
+      <line x1="475" y1="76"  x2="475" y2="108" stroke="#374151" stroke-width="2"/>
+      <!-- Battery polarity reversed for K⁺ -->
+      <line x1="465" y1="110" x2="485" y2="110" stroke="#374151" stroke-width="1.5"/>
+      <line x1="462" y1="117" x2="488" y2="117" stroke="#374151" stroke-width="3.5"/>
+      <line x1="475" y1="119" x2="475" y2="195" stroke="#374151" stroke-width="2"/>
+      <text x="453" y="112" font-size="11" fill="#1d4ed8" font-weight="bold">−</text>
+      <text x="453" y="122" font-size="11" fill="#1d4ed8" font-weight="bold">+</text>
+      <!-- Labels -->
+      <text x="426" y="53" font-size="11" fill="#1d4ed8" font-weight="bold">ḡ<tspan font-size="8" dy="2">K</tspan></text>
+      <text x="445" y="53" font-size="10" fill="#1d4ed8">· n⁴</text>
+      <text x="428" y="138" font-size="11" fill="#1d4ed8">E<tspan font-size="8" dy="2">K</tspan></text>
+      <text x="428" y="152" font-size="9" fill="#718096">−77 mV</text>
+
+      <!-- ═══ Leak branch (x=615) ═══ -->
+      <line x1="615" y1="35"  x2="615" y2="60"  stroke="#374151" stroke-width="2"/>
+      <!-- Fixed resistor (zigzag) -->
+      <polyline points="615,60 607,65 623,71 607,77 623,83 607,89 623,95 615,100"
+                fill="none" stroke="#15803d" stroke-width="2"/>
+      <line x1="615" y1="100" x2="615" y2="113" stroke="#374151" stroke-width="2"/>
+      <line x1="605" y1="115" x2="625" y2="115" stroke="#374151" stroke-width="3.5"/>
+      <line x1="608" y1="122" x2="622" y2="122" stroke="#374151" stroke-width="1.5"/>
+      <line x1="615" y1="124" x2="615" y2="195" stroke="#374151" stroke-width="2"/>
+      <!-- Labels -->
+      <text x="628" y="60" font-size="11" fill="#15803d">g<tspan font-size="8" dy="2">L</tspan></text>
+      <text x="591" y="142" font-size="11" fill="#15803d">E<tspan font-size="8" dy="2">L</tspan></text>
+      <text x="586" y="156" font-size="9" fill="#718096">−54.4 mV</text>
+
+      <!-- ─── Vm label between Iext and Cm ─── -->
+      <text x="128" y="120" font-size="15" fill="#0b7a6e" font-weight="bold">V<tspan font-size="9" dy="3">m</tspan></text>
+
+      <!-- ─── Node dots ─── -->
+      <circle cx="185" cy="35"  r="3.5" fill="#374151"/>
+      <circle cx="335" cy="35"  r="3.5" fill="#374151"/>
+      <circle cx="475" cy="35"  r="3.5" fill="#374151"/>
+      <circle cx="615" cy="35"  r="3.5" fill="#374151"/>
+      <circle cx="185" cy="195" r="3.5" fill="#374151"/>
+      <circle cx="335" cy="195" r="3.5" fill="#374151"/>
+      <circle cx="475" cy="195" r="3.5" fill="#374151"/>
+      <circle cx="615" cy="195" r="3.5" fill="#374151"/>
+
+      <!-- ─── Legend ─── -->
+      <rect x="28"  y="218" width="12" height="3" fill="#dc2626" rx="1"/>
+      <text x="44"  y="226" font-size="9" fill="#718096">Na⁺ channel</text>
+      <rect x="148" y="218" width="12" height="3" fill="#1d4ed8" rx="1"/>
+      <text x="164" y="226" font-size="9" fill="#718096">K⁺ channel</text>
+      <rect x="268" y="218" width="12" height="3" fill="#15803d" rx="1"/>
+      <text x="284" y="226" font-size="9" fill="#718096">Leak</text>
+      <rect x="338" y="218" width="12" height="3" fill="#374151" rx="1"/>
+      <text x="354" y="226" font-size="9" fill="#718096">Capacitor (C<tspan baseline-shift="sub" font-size="7">m</tspan>)</text>
+      <rect x="468" y="218" width="12" height="3" fill="#0b7a6e" rx="1"/>
+      <text x="484" y="226" font-size="9" fill="#718096">Current source (I<tspan baseline-shift="sub" font-size="7">ext</tspan>)</text>
+    </svg>
+    <div style="font-size:.78em;color:var(--dim);text-align:center;margin-top:8px">Figure 1. Hodgkin–Huxley equivalent circuit (V<sub>rest</sub> = −65 mV absolute scale). The dashed arrows on g<sub>Na</sub> and g<sub>K</sub> indicate voltage-dependent (variable) conductances. The battery polarity follows the convention that E<sub>Na</sub> drives inward current (depolarizing) while E<sub>K</sub> drives outward current (repolarizing).</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     §3  MATHEMATICAL FORMULATION
+══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-num">§ 3</div>
+  <h2 class="section-title">Mathematical Formulation</h2>
+  <div class="section-body">
+    <p>Applying Kirchhoff's current law to the equivalent circuit gives the membrane voltage ODE. The total membrane current must equal the external applied current:</p>
+  </div>
+
+  <div class="eq-block">
+    <div class="eq-row">
+      <span class="eq-label">Membrane:</span>
+      <span class="eq-main">C<sub>m</sub> · dV/dt = I<sub>ext</sub> − I<sub>Na</sub> − I<sub>K</sub> − I<sub>L</sub></span>
+      <span class="eq-comment">voltage ODE</span>
+    </div>
+    <div class="eq-sep"></div>
+    <div class="eq-row">
+      <span class="eq-label">I<sub>Na</sub> =</span>
+      <span class="eq-main">ḡ<sub>Na</sub> · m³ · h · (V − E<sub>Na</sub>)</span>
+      <span class="eq-comment">sodium current</span>
+    </div>
+    <div class="eq-row">
+      <span class="eq-label">I<sub>K</sub> =</span>
+      <span class="eq-main">ḡ<sub>K</sub> · n⁴ · (V − E<sub>K</sub>)</span>
+      <span class="eq-comment">potassium current</span>
+    </div>
+    <div class="eq-row">
+      <span class="eq-label">I<sub>L</sub> =</span>
+      <span class="eq-main">ḡ<sub>L</sub> · (V − E<sub>L</sub>)</span>
+      <span class="eq-comment">leak (passive)</span>
+    </div>
+  </div>
+
+  <div class="section-body">
+    <p>The gating variables <strong>m</strong>, <strong>h</strong>, and <strong>n</strong> each obey a first-order kinetic equation. They represent the probability that individual gating particles (subunits) are in the permissive (open) state. Each evolves toward its voltage-dependent steady state x<sub>∞</sub>(V) with time constant τ<sub>x</sub>(V):</p>
+  </div>
+
+  <div class="eq-block">
+    <div class="eq-row">
+      <span class="eq-label">dm/dt =</span>
+      <span class="eq-main">α<sub>m</sub>(V)·(1−m) − β<sub>m</sub>(V)·m = [m<sub>∞</sub>(V)−m] / τ<sub>m</sub>(V)</span>
+    </div>
+    <div class="eq-row">
+      <span class="eq-label">dh/dt =</span>
+      <span class="eq-main">α<sub>h</sub>(V)·(1−h) − β<sub>h</sub>(V)·h = [h<sub>∞</sub>(V)−h] / τ<sub>h</sub>(V)</span>
+    </div>
+    <div class="eq-row">
+      <span class="eq-label">dn/dt =</span>
+      <span class="eq-main">α<sub>n</sub>(V)·(1−n) − β<sub>n</sub>(V)·n = [n<sub>∞</sub>(V)−n] / τ<sub>n</sub>(V)</span>
+    </div>
+    <div class="eq-sep"></div>
+    <div class="eq-row">
+      <span class="eq-label">x<sub>∞</sub>(V) =</span>
+      <span class="eq-main">α<sub>x</sub> / (α<sub>x</sub> + β<sub>x</sub>)</span>
+      <span class="eq-comment">steady-state</span>
+    </div>
+    <div class="eq-row">
+      <span class="eq-label">τ<sub>x</sub>(V) =</span>
+      <span class="eq-main">1 / (α<sub>x</sub> + β<sub>x</sub>)</span>
+      <span class="eq-comment">time constant (ms at 6.3°C)</span>
+    </div>
+  </div>
+
+  <div class="section-body">
+    <p>The voltage-dependent rate functions (transition rates between closed and open states, in ms<sup>−1</sup>) were determined empirically by Hodgkin and Huxley from fits to their voltage-clamp data. They use the original H&H convention where <strong>V = 0 at rest</strong> (= −65 mV absolute); threshold ≈ V+15 mV, AP peak ≈ V+100 mV.</p>
+  </div>
+
+  <div class="eq-block">
+    <div class="eq-row"><span class="eq-label">α<sub>m</sub> =</span><span class="eq-main">−0.1(V−25) / (e<sup>−(V−25)/10</sup>−1)</span><span class="eq-comment">→ 1.0 as V → 25 (L'Hôpital)</span></div>
+    <div class="eq-row"><span class="eq-label">β<sub>m</sub> =</span><span class="eq-main">4·e<sup>−V/18</sup></span></div>
+    <div class="eq-sep"></div>
+    <div class="eq-row"><span class="eq-label">α<sub>h</sub> =</span><span class="eq-main">0.07·e<sup>−V/20</sup></span></div>
+    <div class="eq-row"><span class="eq-label">β<sub>h</sub> =</span><span class="eq-main">1 / (e<sup>−(V−30)/10</sup>+1)</span></div>
+    <div class="eq-sep"></div>
+    <div class="eq-row"><span class="eq-label">α<sub>n</sub> =</span><span class="eq-main">−0.01(V−10) / (e<sup>−(V−10)/10</sup>−1)</span><span class="eq-comment">→ 0.1 as V → 10 (L'Hôpital)</span></div>
+    <div class="eq-row"><span class="eq-label">β<sub>n</sub> =</span><span class="eq-main">0.125·e<sup>−V/80</sup></span></div>
+    <div class="eq-sep"></div>
+    <div class="eq-row"><span class="eq-label">φ(T) =</span><span class="eq-main">3<sup>(T−6.3)/10</sup></span><span class="eq-comment">Q<sub>10</sub>=3 temperature scaling (all rates × φ)</span></div>
+    <div class="eq-note">In the equations V=0 at rest (−65 mV absolute). Simulator initial conditions: V<sub>m</sub>(0)=−65 mV, m(0)=n(0)=h(0)=0. At T=6.3°C (squid axon experiment); at body temperature (37°C), φ≈28× faster.<sup>[3,4]</sup></div>
+  </div>
+
+  <div class="section-body">
+    <p>The choice of <strong>m³h</strong> for Na⁺ and <strong>n⁴</strong> for K⁺ was motivated by the shapes of the conductance time courses observed experimentally: the sigmoidal activation delay of g<sub>Na</sub> required at least three independent activation gates, while the delayed rectifier K⁺ conductance required four. This was later validated by single-channel recordings showing that Na⁺ channels have three independent activation subunits (S4 voltage sensors) and one inactivation gate, while K⁺ channels are homotetrameric.<sup>[5]</sup></p>
+  </div>
+
+  <div class="callout callout-amber">
+    <div class="callout-title">Physical Interpretation of the Gates</div>
+    <strong>m</strong> (Na⁺ activation): opens fast upon depolarization. At rest (V=0): m(0)=0, m<sub>∞</sub>→0 (closed). During AP peak (~115 mV): m<sub>∞</sub>→1.<br>
+    <strong>h</strong> (Na⁺ inactivation): inactivation gate. At V=0: h(0)=0; the system builds up as it depolarizes. During AP: h→0, blocking further Na⁺ entry (absolute refractory period).<br>
+    <strong>n</strong> (K⁺ activation): delayed rectifier. At V=0: n(0)=0 (closed). Opens during depolarization, driving repolarization. 
+  </div>
+
+  
+  <div class="fig-wrap" style="max-width:520px;margin:20px auto">
+    <img src="https://en.wikipedia.org/wiki/Special:FilePath/Action_potential_vert.png?width=300"
+         alt="Hodgkin-Huxley model voltage clamp results"
+         onerror="this.style.display='none'">
+    <div class="fig-cap">Calculated (upper) vs. measured (lower) action potentials from the 1952 paper — the model's remarkable predictive accuracy. Reproduced from Hodgkin &amp; Huxley (1952), <em>J. Physiol.</em> 117, 500–544. Public domain.</div>
+  </div>
+
+  <h3 style="font-family:var(--serif);font-size:1.2em;font-weight:400;margin:28px 0 12px;color:var(--text)">Standard Parameter Values</h3>
+  <table class="param-table">
+    <thead><tr><th>Parameter</th><th>Value</th><th>Units</th><th>Physical Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>ḡ<sub>Na</sub></td><td>120</td><td>mS/cm²</td><td>Max Na⁺ conductance</td></tr>
+      <tr><td>ḡ<sub>K</sub></td><td>36</td><td>mS/cm²</td><td>Max K⁺ conductance</td></tr>
+      <tr><td>ḡ<sub>L</sub></td><td>0.3</td><td>mS/cm²</td><td>Passive leak conductance</td></tr>
+      <tr><td>E<sub>Na</sub></td><td>+50</td><td>mV</td><td>Na⁺ Nernst (equilibrium) potential</td></tr>
+      <tr><td>E<sub>K</sub></td><td>−77</td><td>mV</td><td>K⁺ Nernst (equilibrium) potential</td></tr>
+      <tr><td>E<sub>L</sub></td><td>−54.4</td><td>mV</td><td>Leak reversal potential</td></tr>
+      <tr><td>C<sub>m</sub></td><td>1</td><td>µF/cm²</td><td>Membrane capacitance</td></tr>
+      <tr><td>V<sub>rest</sub></td><td>−65</td><td>mV</td><td>Resting membrane potential (absolute scale)</td></tr>
+      <tr><td>T</td><td>6.3</td><td>°C</td><td>Temperature of original H&amp;H experiments</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     §4  INTERACTIVE SIMULATOR
+══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-num">§ 4</div>
+  <h2 class="section-title">Interactive Simulator</h2>
+  <div class="section-body" style="margin-bottom:20px">
+    <p>Adjust the parameters and stimulus below to explore action potential generation. Try injecting a sub-threshold current (below ~6 µA/cm²) to see the membrane return to rest without firing, or a supra-threshold step to trigger an action potential. Block Na⁺ (simulates tetrodotoxin, TTX) or K⁺ (simulates tetraethylammonium, TEA) channels to see how each contributes to AP shape.</p>
+  </div>
+
+  <div class="sim-section">
+    <div class="sim-header">
+      <div>
+        <div class="sim-title">Hodgkin–Huxley Membrane Patch</div>
+        <div class="sim-subtitle">4th-order Runge–Kutta · dt = 0.01 ms · Squid giant axon parameters</div>
+      </div>
+      <div class="sim-status" id="sim-status">
+        <span class="dot paused" id="sim-dot"></span>
+        <span id="sim-status-text">Ready</span>
+      </div>
+    </div>
+    <!-- Tab bar -->
+    <div class="sim-tabs">
+      <div class="sim-tab active" id="tab-cc" onclick="switchSimTab('cc')">▶ Current Clamp</div>
+      <div class="sim-tab" id="tab-vc" onclick="switchSimTab('vc')">⚡ Voltage Clamp</div>
+    </div>
+
+    <!-- Current Clamp Panel -->
+    <div class="sim-panel active" id="panel-cc" class="sim-panel active">
+    <div class="sim-body">
+      <!-- Controls -->
+      <div class="sim-controls">
+
+        <!-- Stimulus -->
+        <div class="ctrl-group full">
+          <div class="ctrl-group-label">Stimulus · I<sub>ext</sub>(t)</div>
+          <div class="ctrl-row">
+            <span class="ctrl-label"><span class="ctrl-label-txt">Type</span></span>
+            <select class="ctrl-select" id="stim-type" onchange="updateStim()">
+              <option value="continuous" selected>Continuous</option>
+              <option value="step">Step (finite)</option>
+              <option value="pulse">Pulse train</option>
+              <option value="ramp">Ramp</option>
+              <option value="sine">Sinusoidal</option>
+            </select>
+          </div>
+          <div class="ctrl-row">
+  <span class="ctrl-label"><span class="ctrl-label-txt">I<sub>ext</sub><span class="ctrl-unit">µA/cm²</span></span><input type="number" class="ctrl-num" id="sl-I0-num" min="-5" max="50" step="0.1" value="10" onchange="syncNum('sl-I0',this.value)" onblur="syncNum('sl-I0',this.value)"></span>
+  <input class="ctrl-slider" type="range" id="sl-I0" min="-5" max="50" step="0.1" value="10" oninput="slUpdate('I0',this.value,'sl-I0-val');updateStim();syncSlider('sl-I0',this.value)">
+</div>
+          <div class="ctrl-row">
+  <span class="ctrl-label"><span class="ctrl-label-txt">Start<span class="ctrl-unit">ms</span></span><input type="number" class="ctrl-num" id="sl-tStart-num" min="0" max="80" step="1" value="0" onchange="syncNum('sl-tStart',this.value)" onblur="syncNum('sl-tStart',this.value)"></span>
+  <input class="ctrl-slider" type="range" id="sl-tStart" min="0" max="80" step="1" value="0" oninput="slUpdate('tStart',this.value,'sl-tStart-val');updateStim();syncSlider('sl-tStart',this.value)">
+</div>
+          <div class="ctrl-row" id="dur-row">
+  <span class="ctrl-label"><span class="ctrl-label-txt">Duration<span class="ctrl-unit">ms</span></span><input type="number" class="ctrl-num" id="sl-dur-num" min="0.1" max="200" step="0.5" value="100" onchange="syncNum('sl-dur',this.value)" onblur="syncNum('sl-dur',this.value)"></span>
+  <input class="ctrl-slider" type="range" id="sl-dur" min="0.1" max="200" step="0.5" value="100" oninput="slUpdate('dur',this.value,'sl-dur-val');updateStim();syncSlider('sl-dur',this.value)">
+</div>
+          <!-- Stimulus window computed display -->
+          <div id="stim-window-disp" style="grid-column:1/-1;display:none" style="font-family:var(--mono);font-size:.72em;color:var(--teal);background:rgba(11,122,110,.08);border:1px solid rgba(11,122,110,.2);border-radius:5px;padding:4px 8px;margin-bottom:8px;text-align:center">
+            Active: t = <span id="stim-t0">10</span> → <span id="stim-t1">50</span> ms
+          </div>
+          <div class="ctrl-row" id="freq-row">
+  <span class="ctrl-label"><span class="ctrl-label-txt">Freq<span class="ctrl-unit">Hz</span></span><input type="number" class="ctrl-num" id="sl-freq-num" min="1" max="200" step="1" value="40" onchange="syncNum('sl-freq',this.value);updateStim()" onblur="syncNum('sl-freq',this.value);updateStim()"></span>
+  <input class="ctrl-slider" type="range" id="sl-freq" min="1" max="200" step="1" value="40" oninput="slUpdate('freq',this.value,'sl-freq-val');updateStim();syncSlider('sl-freq',this.value)">
+</div>
+        </div>
+
+        <!-- Channels -->
+        <div class="ctrl-group">
+          <div class="ctrl-group-label">Max Conductances</div>
+          <div class="ctrl-row">
+  <span class="ctrl-label"><span class="ctrl-label-txt">ḡ<sub>Na</sub><span class="ctrl-unit">mS/cm²</span></span><input type="number" class="ctrl-num" id="sl-gNa-num" min="0" max="200" step="1" value="120" onchange="syncNum('sl-gNa',this.value)" onblur="syncNum('sl-gNa',this.value)"></span>
+  <input class="ctrl-slider" type="range" id="sl-gNa" min="0" max="200" step="1" value="120" oninput="slUpdate('gNa',this.value,'sl-gNa-val');syncSlider('sl-gNa',this.value)">
+</div>
+          <div class="ctrl-row">
+  <span class="ctrl-label"><span class="ctrl-label-txt">ḡ<sub>K</sub><span class="ctrl-unit">mS/cm²</span></span><input type="number" class="ctrl-num" id="sl-gK-num" min="0" max="80" step="0.5" value="36" onchange="syncNum('sl-gK',this.value)" onblur="syncNum('sl-gK',this.value)"></span>
+  <input class="ctrl-slider" type="range" id="sl-gK" min="0" max="80" step="0.5" value="36" oninput="slUpdate('gK',this.value,'sl-gK-val');syncSlider('sl-gK',this.value)">
+</div>
+          <div class="ctrl-row">
+  <span class="ctrl-label"><span class="ctrl-label-txt">ḡ<sub>L</sub><span class="ctrl-unit">mS/cm²</span></span><input type="number" class="ctrl-num" id="sl-gL-num" min="0" max="2" step="0.01" value="0.3" onchange="syncNum('sl-gL',this.value)" onblur="syncNum('sl-gL',this.value)"></span>
+  <input class="ctrl-slider" type="range" id="sl-gL" min="0" max="2" step="0.01" value="0.3" oninput="slUpdate('gL',this.value,'sl-gL-val');syncSlider('sl-gL',this.value)">
+</div>
+        </div>
+
+        <!-- Reversal Potentials -->
+        <div class="ctrl-group">
+          <div class="ctrl-group-label">Reversal Potentials</div>
+          <div class="ctrl-row">
+  <span class="ctrl-label"><span class="ctrl-label-txt">E<sub>Na</sub><span class="ctrl-unit">mV</span></span><input type="number" class="ctrl-num" id="sl-ENa-num" min="-20" max="80" step="1" value="50" onchange="syncNum('sl-ENa',this.value)" onblur="syncNum('sl-ENa',this.value)"></span>
+  <input class="ctrl-slider" type="range" id="sl-ENa" min="-20" max="80" step="1" value="50" oninput="slUpdate('ENa',this.value,'sl-ENa-val');syncSlider('sl-ENa',this.value)">
+</div>
+          <div class="ctrl-row">
+  <span class="ctrl-label"><span class="ctrl-label-txt">E<sub>K</sub><span class="ctrl-unit">mV</span></span><input type="number" class="ctrl-num" id="sl-EK-num" min="-110" max="-40" step="1" value="-77" onchange="syncNum('sl-EK',this.value)" onblur="syncNum('sl-EK',this.value)"></span>
+  <input class="ctrl-slider" type="range" id="sl-EK" min="-110" max="-40" step="1" value="-77" oninput="slUpdate('EK',this.value,'sl-EK-val');syncSlider('sl-EK',this.value)">
+</div>
+          <div class="ctrl-row">
+  <span class="ctrl-label"><span class="ctrl-label-txt">E<sub>L</sub><span class="ctrl-unit">mV</span></span><input type="number" class="ctrl-num" id="sl-EL-num" min="-70" max="-40" step="0.1" value="-54.4" onchange="syncNum('sl-EL',this.value)" onblur="syncNum('sl-EL',this.value)"></span>
+  <input class="ctrl-slider" type="range" id="sl-EL" min="-70" max="-40" step="0.1" value="-54.4" oninput="slUpdate('EL',this.value,'sl-EL-val');syncSlider('sl-EL',this.value)">
+</div>
+        </div>
+
+        <!-- Temperature -->
+        <div class="ctrl-group">
+          <div class="ctrl-group-label">Physical Parameters</div>
+          <div class="ctrl-row">
+  <span class="ctrl-label"><span class="ctrl-label-txt">Temp<span class="ctrl-unit">°C</span></span><input type="number" class="ctrl-num" id="sl-T-num" min="0" max="42" step="0.5" value="6.3" onchange="syncNum('sl-T',this.value)" onblur="syncNum('sl-T',this.value)"></span>
+  <input class="ctrl-slider" type="range" id="sl-T" min="0" max="42" step="0.5" value="6.3" oninput="slUpdate('T',this.value,'sl-T-val');syncSlider('sl-T',this.value)">
+</div>
+          <div class="ctrl-row">
+  <span class="ctrl-label"><span class="ctrl-label-txt">C<sub>m</sub><span class="ctrl-unit">µF/cm²</span></span><input type="number" class="ctrl-num" id="sl-Cm-num" min="0.1" max="3" step="0.05" value="1.0" onchange="syncNum('sl-Cm',this.value)" onblur="syncNum('sl-Cm',this.value)"></span>
+  <input class="ctrl-slider" type="range" id="sl-Cm" min="0.1" max="3" step="0.05" value="1" oninput="slUpdate('Cm',this.value,'sl-Cm-val');syncSlider('sl-Cm',this.value)">
+</div>
+<div class="ctrl-row">
+  <span class="ctrl-label"><span class="ctrl-label-txt">dt<span class="ctrl-unit">ms</span></span><input type="number" class="ctrl-num" id="sl-dt-num" min="0.005" max="0.115" step="0.001" value="0.01" onchange="syncNum('sl-dt',this.value)" onblur="syncNum('sl-dt',this.value)"></span>
+  <input class="ctrl-slider" type="range" id="sl-dt" min="0.005" max="0.115" step="0.001" value="0.01" oninput="slUpdateDT(this.value)">
+</div>
+          <div class="ctrl-row">
+  <span class="ctrl-label"><span class="ctrl-label-txt">Window<span class="ctrl-unit">ms</span></span><input type="number" class="ctrl-num" id="sl-win-num" min="50" max="500" step="10" value="120" onchange="syncNum('sl-win',this.value)" onblur="syncNum('sl-win',this.value)"></span>
+  <input class="ctrl-slider" type="range" id="sl-win" min="50" max="500" step="10" value="120" oninput="slUpdate('win',this.value,'sl-win-val');updateWindow();syncSlider('sl-win',this.value)">
+</div>
+        </div>
+
+
+        <!-- Speed & Display -->
+        <div class="ctrl-group full">
+          <div class="ctrl-group-label">Playback Speed</div>
+          <div class="ctrl-row">
+  <span class="ctrl-label"><span class="ctrl-label-txt">Speed <span id="sl-speed-val">1×</span></span></span>
+  <input class="ctrl-slider" type="range" id="sl-speed" min="1" max="8" step="1" value="3" oninput="setSpeed(this.value);syncSlider('sl-speed',this.value)">
+</div>
+          <div style="font-size:.67em;color:var(--dim);margin:-2px 0 5px;line-height:1.35">Lower = slower, easier to read AP shape</div>
+          <div class="ctrl-check-row">
+            <input type="checkbox" id="auto-pause" onchange="P.autoPause=this.checked">
+            <label for="auto-pause" title="Pauses 20ms after stimulus ends when Vm stabilizes — useful for step response analysis">Auto-pause after settling (20 ms) ⓘ</label>
+          </div>
+        </div>
+        <!-- Channel Blocks -->
+        <div class="ctrl-group full">
+          <div class="ctrl-group-label">Ion Channel Blockers</div>
+          <div class="ctrl-check-row">
+            <input type="checkbox" id="block-na" onchange="P.blockNa=this.checked">
+            <label for="block-na">Block Na⁺ (simulate <span class="badge-block">TTX</span>)</label>
+          </div>
+          <div class="ctrl-check-row">
+            <input type="checkbox" id="block-k" onchange="P.blockK=this.checked">
+            <label for="block-k">Block K⁺ (simulate <span class="badge-block">TEA</span>)</label>
+          </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="sim-btns full" style="grid-column:1/-1">
+          <button class="btn-sim btn-run" id="btn-run" onclick="startSim()">▶ Run</button>
+          <button class="btn-sim btn-stop" onclick="stopSim()">⏸ Pause</button>
+        </div>
+        <div class="sim-btns" style="margin-top:5px;grid-column:1/-1">
+          <button class="btn-sim btn-reset" onclick="resetSim()">↺ Reset</button>
+          <button class="btn-sim btn-reset" onclick="applyDefaults()" title="Restore all parameters to HH defaults">⟳ Defaults</button>
+          <button class="btn-sim btn-reset" id="btn-home" onclick="homeView()" title="Reset plot view to auto-follow">⌂ Home</button>
+        </div>
+
+        <!-- Presets -->
+        <div style="margin-top:10px;grid-column:1/-1">
+          <div style="font-family:var(--mono);font-size:.63em;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-bottom:6px;grid-column:1/-1">Quick Presets</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;grid-column:1/-1">
+            <button onclick="applyPreset('standard')" style="padding:5px 4px;border:1px solid var(--border2);border-radius:5px;background:var(--bg2);font-size:.7em;cursor:pointer;color:var(--muted);transition:all .15s" onmouseover="this.style.color='var(--teal)'" onmouseout="this.style.color='var(--muted)'">Continuous</button>
+            <button onclick="applyPreset('step100')" style="padding:5px 4px;border:1px solid var(--border2);border-radius:5px;background:var(--bg2);font-size:.7em;cursor:pointer;color:var(--muted);transition:all .15s" onmouseover="this.style.color='var(--teal)'" onmouseout="this.style.color='var(--muted)'">Step 100ms</button>
+            <button onclick="applyPreset('burst')" style="padding:5px 4px;border:1px solid var(--border2);border-radius:5px;background:var(--bg2);font-size:.7em;cursor:pointer;color:var(--muted);transition:all .15s" onmouseover="this.style.color='var(--teal)'" onmouseout="this.style.color='var(--muted)'">Burst (20µA)</button>
+            <button onclick="applyPreset('subthresh')" style="padding:5px 4px;border:1px solid var(--border2);border-radius:5px;background:var(--bg2);font-size:.7em;cursor:pointer;color:var(--muted);transition:all .15s" onmouseover="this.style.color='var(--teal)'" onmouseout="this.style.color='var(--muted)'">Sub-threshold</button>
+            <button onclick="applyPreset('body')" style="padding:5px 4px;border:1px solid var(--border2);border-radius:5px;background:var(--bg2);font-size:.7em;cursor:pointer;color:var(--muted);transition:all .15s" onmouseover="this.style.color='var(--teal)'" onmouseout="this.style.color='var(--muted)'" title="37°C body temperature — faster kinetics">Body Temp (37°C)</button>
+            <button onclick="applyPreset('phasedemo')" style="padding:5px 4px;border:1px solid var(--teal);border-radius:5px;background:rgba(11,122,110,.08);font-size:.7em;cursor:pointer;color:var(--teal);font-weight:600;transition:all .15s;grid-column:1/-1" title="Auto-runs tonic firing to populate the phase portrait">▶ Phase Demo (auto-run)</button>
+          </div>
+        </div>
+      </div><!-- /controls -->
+
+      <!-- Plots -->
+      <div class="sim-plots">
+        <div class="plot-wrap">
+          <div class="plot-label">Membrane Potential (mV)</div>
+          <div class="plot-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#0b7a6e"></div>V<sub>m</sub></div>
+            <div class="legend-item"><div class="legend-dot" style="background:#9ca3af;width:14px;border-top:2px dashed #9ca3af;height:0;margin-top:1px"></div>I<sub>ext</sub></div>
+          </div>
+          <canvas id="cv-V" height="194"></canvas>
+        </div>
+        <div class="plot-wrap">
+          <div class="plot-label">Gating Variables</div>
+          <div class="plot-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#dc2626"></div>m</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>h</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#7c3aed"></div>n</div>
+          </div>
+          <canvas id="cv-gates" height="138"></canvas>
+        </div>
+        <div class="plot-wrap">
+          <div class="plot-label">Ionic Currents (µA/cm²)</div>
+          <div class="plot-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#dc2626"></div>I<sub>Na</sub></div>
+            <div class="legend-item"><div class="legend-dot" style="background:#1d4ed8"></div>I<sub>K</sub></div>
+            <div class="legend-item"><div class="legend-dot" style="background:#15803d"></div>I<sub>L</sub></div>
+          </div>
+          <canvas id="cv-currents" height="138"></canvas>
+        </div>
+        <div class="plot-wrap">
+          <div class="plot-label">Stimulus Current I<sub>ext</sub>(t) (µA/cm²)</div>
+          <div class="plot-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#0b7a6e"></div>I<sub>ext</sub></div>
+          </div>
+          <canvas id="cv-Iext" height="90"></canvas>
+        </div>
+      </div>
+    </div>
+    </div><!-- /panel-cc -->
+
+    <!-- Voltage Clamp Panel -->
+    <div class="sim-panel" id="panel-vc" class="sim-panel">
+      <!-- Voltage Clamp Layout: left controls + right plots -->
+      <div style="display:flex;height:1100px;overflow:hidden">
+
+        <!-- VC Controls (left, same width as CC controls) -->
+        <div class="sim-controls" style="width:400px;min-width:400px;flex-shrink:0">
+
+          <!-- Protocol group -->
+          <div class="ctrl-group full">
+            <div class="ctrl-group-label">Clamp Protocol</div>
+            <div class="ctrl-row">
+              <span class="ctrl-label"><span class="ctrl-label-txt">V<sub>hold</sub><span class="ctrl-unit">mV</span></span><input type="number" class="ctrl-num" id="vc-vhold-num" min="-85" max="0" step="1" value="-65" onchange="syncVCNum('vc-vhold',this.value)" onblur="syncVCNum('vc-vhold',this.value)"></span>
+              <input class="ctrl-slider" type="range" id="vc-vhold" min="-85" max="0" step="1" value="-65" oninput="vcSlider('vhold',this.value)">
+            </div>
+            <div class="ctrl-row">
+              <span class="ctrl-label"><span class="ctrl-label-txt">V<sub>cmd</sub><span class="ctrl-unit">mV</span></span><input type="number" class="ctrl-num" id="vc-vcmd-num" min="-80" max="80" step="5" value="20" onchange="syncVCNum('vc-vcmd',this.value)" onblur="syncVCNum('vc-vcmd',this.value)"></span>
+              <input class="ctrl-slider" type="range" id="vc-vcmd" min="-80" max="80" step="5" value="20" oninput="vcSlider('vcmd',this.value)">
+            </div>
+            <div class="ctrl-row">
+              <span class="ctrl-label"><span class="ctrl-label-txt">Step onset<span class="ctrl-unit">ms</span></span><input type="number" class="ctrl-num" id="vc-tpre-num" min="0" max="80" step="5" value="10" onchange="syncVCNum('vc-tpre',this.value)" onblur="syncVCNum('vc-tpre',this.value)"></span>
+              <input class="ctrl-slider" type="range" id="vc-tpre" min="0" max="80" step="5" value="10" oninput="vcSlider('tpre',this.value)">
+            </div>
+            <div class="ctrl-row">
+              <span class="ctrl-label"><span class="ctrl-label-txt">Step dur<span class="ctrl-unit">ms</span></span><input type="number" class="ctrl-num" id="vc-dur-num" min="5" max="150" step="5" value="40" onchange="syncVCNum('vc-dur',this.value)" onblur="syncVCNum('vc-dur',this.value)"></span>
+              <input class="ctrl-slider" type="range" id="vc-dur" min="5" max="150" step="5" value="40" oninput="vcSlider('dur',this.value)">
+            </div>
+          </div>
+
+          <!-- Conductances col 1 -->
+          <div class="ctrl-group">
+            <div class="ctrl-group-label">Conductances</div>
+            <div class="ctrl-row">
+              <span class="ctrl-label"><span class="ctrl-label-txt">ḡ<sub>Na</sub><span class="ctrl-unit">mS/cm²</span></span><input type="number" class="ctrl-num" id="vc-gna-num" min="0" max="200" step="10" value="120" onchange="syncVCNum('vc-gna',this.value)" onblur="syncVCNum('vc-gna',this.value)"></span>
+              <input class="ctrl-slider" type="range" id="vc-gna" min="0" max="200" step="10" value="120" oninput="vcSlider('gna',this.value)">
+            </div>
+            <div class="ctrl-row">
+              <span class="ctrl-label"><span class="ctrl-label-txt">ḡ<sub>K</sub><span class="ctrl-unit">mS/cm²</span></span><input type="number" class="ctrl-num" id="vc-gk-num" min="0" max="100" step="5" value="36" onchange="syncVCNum('vc-gk',this.value)" onblur="syncVCNum('vc-gk',this.value)"></span>
+              <input class="ctrl-slider" type="range" id="vc-gk" min="0" max="100" step="5" value="36" oninput="vcSlider('gk',this.value)">
+            </div>
+            <div class="ctrl-row">
+              <span class="ctrl-label"><span class="ctrl-label-txt">ḡ<sub>L</sub><span class="ctrl-unit">mS/cm²</span></span><input type="number" class="ctrl-num" id="vc-gl-num" min="0" max="2" step="0.1" value="0.3" onchange="syncVCNum('vc-gl',this.value)" onblur="syncVCNum('vc-gl',this.value)"></span>
+              <input class="ctrl-slider" type="range" id="vc-gl" min="0" max="2" step="0.1" value="0.3" oninput="vcSlider('gl',this.value)">
+            </div>
+          </div>
+
+          <!-- Reversals col 2 -->
+          <div class="ctrl-group">
+            <div class="ctrl-group-label">Reversals</div>
+            <div class="ctrl-row">
+              <span class="ctrl-label"><span class="ctrl-label-txt">E<sub>Na</sub><span class="ctrl-unit">mV</span></span><input type="number" class="ctrl-num" id="vc-ena-num" min="20" max="80" step="5" value="50" onchange="syncVCNum('vc-ena',this.value)" onblur="syncVCNum('vc-ena',this.value)"></span>
+              <input class="ctrl-slider" type="range" id="vc-ena" min="20" max="80" step="5" value="50" oninput="vcSlider('ena',this.value)">
+            </div>
+            <div class="ctrl-row">
+              <span class="ctrl-label"><span class="ctrl-label-txt">E<sub>K</sub><span class="ctrl-unit">mV</span></span><input type="number" class="ctrl-num" id="vc-ek-num" min="-110" max="-40" step="5" value="-77" onchange="syncVCNum('vc-ek',this.value)" onblur="syncVCNum('vc-ek',this.value)"></span>
+              <input class="ctrl-slider" type="range" id="vc-ek" min="-110" max="-40" step="5" value="-77" oninput="vcSlider('ek',this.value)">
+            </div>
+            <div class="ctrl-row">
+              <span class="ctrl-label"><span class="ctrl-label-txt">E<sub>L</sub><span class="ctrl-unit">mV</span></span><input type="number" class="ctrl-num" id="vc-el-num" min="-70" max="-40" step="1" value="-54.4" onchange="syncVCNum('vc-el',this.value)" onblur="syncVCNum('vc-el',this.value)"></span>
+              <input class="ctrl-slider" type="range" id="vc-el" min="-70" max="-40" step="1" value="-54.4" oninput="vcSlider('el',this.value)">
+            </div>
+          </div>
+
+          <!-- Blockers full-width -->
+          <div class="ctrl-group full">
+            <div class="ctrl-group-label">Ion Channel Blockers</div>
+            <div class="ctrl-row" style="flex-direction:row;gap:18px;align-items:center">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.82em;color:var(--muted)"><input type="checkbox" id="vc-block-na" onchange="vcP.blockNa=this.checked"> Block Na⁺ <span style="font-family:var(--mono);font-size:.75em;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;border-radius:3px;padding:1px 4px">TTX</span></label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.82em;color:var(--muted)"><input type="checkbox" id="vc-block-k" onchange="vcP.blockK=this.checked"> Block K⁺ <span style="font-family:var(--mono);font-size:.75em;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:3px;padding:1px 4px">TEA</span></label>
+            </div>
+          </div>
+
+          <!-- Temperature -->
+          <div class="ctrl-group full">
+            <div class="ctrl-group-label">Temperature</div>
+            <div class="ctrl-row">
+              <span class="ctrl-label"><span class="ctrl-label-txt">T<span class="ctrl-unit">°C</span></span><input type="number" class="ctrl-num" id="vc-T-num" min="0" max="40" step="1" value="6.3" onchange="syncVCNum('vc-T',this.value)" onblur="syncVCNum('vc-T',this.value)"></span>
+              <input class="ctrl-slider" type="range" id="vc-T" min="0" max="40" step="1" value="6.3" oninput="vcSlider('T',this.value)">
+            </div>
+          </div>
+
+          <!-- Buttons full-width -->
+          <div class="sim-btns full" style="grid-column:1/-1">
+            <button class="btn-sim btn-run" onclick="vcRun()">▶ Run Clamp</button>
+            <button class="btn-sim btn-pause" onclick="vcStop()">⏸ Stop</button>
+            <button class="btn-sim btn-reset" onclick="vcReset()">↺ Reset</button>
+            <button class="btn-sim btn-reset" onclick="vcClearIV()" style="color:#dc2626" title="Clear accumulated I-V data">⊗ Clear I–V</button>
+            <button class="btn-sim btn-reset" onclick="vcResetAllViews()" title="Reset all graph zoom/pan">⌂ Home</button>
+          </div>
+
+          
+          <!-- Voltage Sweep controls (full-width) -->
+          <div class="ctrl-group full" style="grid-column:1/-1;margin-top:4px">
+            <div class="ctrl-group-label">Voltage Sweep <span style="font-weight:400;color:var(--dim);font-size:.85em">— auto-runs clamp across a range of V<sub>cmd</sub></span></div>
+            <!-- Row 1: range inputs, spread across full width -->
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+              <span style="font-family:var(--mono);font-size:.72em;color:var(--dim);white-space:nowrap">V<sub>cmd</sub> from</span>
+              <input type="number" id="vc-sweep-from" value="-70" step="5" style="flex:1;min-width:0;padding:3px 6px;font-size:.78em;border:1px solid var(--border2);border-radius:4px;background:var(--bg2);color:var(--text)">
+              <span style="font-family:var(--mono);font-size:.72em;color:var(--dim)">to</span>
+              <input type="number" id="vc-sweep-to" value="50" step="5" style="flex:1;min-width:0;padding:3px 6px;font-size:.78em;border:1px solid var(--border2);border-radius:4px;background:var(--bg2);color:var(--text)">
+              <span style="font-family:var(--mono);font-size:.72em;color:var(--dim)">step</span>
+              <input type="number" id="vc-sweep-step" value="5" min="1" step="5" style="flex:1;min-width:0;padding:3px 6px;font-size:.78em;border:1px solid var(--border2);border-radius:4px;background:var(--bg2);color:var(--text)">
+              <span style="font-family:var(--mono);font-size:.72em;color:var(--dim)">mV</span>
+            </div>
+            <!-- Row 2: run/stop buttons + progress -->
+            <div style="display:flex;gap:6px;align-items:center">
+              <button class="btn-sim btn-run" onclick="vcStartSweep()" style="flex:1;font-size:.78em">⚡ Run Sweep</button>
+              <button class="btn-sim btn-reset" onclick="vcStopSweep()" style="font-size:.78em">⏹ Stop</button>
+              <span id="vc-sweep-prog" style="font-family:var(--mono);font-size:.7em;color:var(--teal);display:none;white-space:nowrap"></span>
+            </div>
+          </div>
+
+          <!-- I-V table full-width -->
+          <div style="grid-column:1/-1;margin-top:4px;display:flex;flex-direction:column;flex:1;min-height:0">
+            <div style="font-family:var(--mono);font-size:.63em;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-bottom:5px">I–V Curve Data <span style="font-weight:400;color:var(--dim);font-size:.9em">— each Run Clamp adds one row</span></div>
+            <div id="iv-table" style="font-family:var(--mono);font-size:.7em;color:var(--dim);overflow-y:auto;flex:1;min-height:80px;border:1px solid var(--border);border-radius:4px;padding:3px 6px">
+              <table style="width:100%;border-collapse:collapse">
+                <thead><tr><th style="text-align:right;padding:1px 4px;color:var(--muted)">V<sub>cmd</sub>(mV)</th><th style="text-align:right;padding:1px 4px;color:#dc2626">I<sub>Na</sub> pk</th><th style="text-align:right;padding:1px 4px;color:#1d4ed8">I<sub>K</sub> pk</th><th style="text-align:right;padding:1px 4px;color:#374151">I<sub>tot</sub> pk</th></tr></thead>
+                <tbody id="iv-tbody"><tr><td colspan="4" style="text-align:center;color:var(--dim);padding:6px">Run clamp at different V<sub>cmd</sub> to build I–V curve</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+
+        </div><!-- /vc sim-controls -->
+
+        <!-- VC Plots (right) -->
+        <div class="sim-plots">
+          <div class="plot-wrap">
+            <div class="canvas-card-header"><span class="canvas-card-title">V(t) — Clamped Voltage</span><span class="canvas-card-sub">Pre-hold (gray) → Step to V<sub>cmd</sub> (red line = step onset)</span></div>
+            <canvas id="vc-cv-V" style="cursor:default" height="140"></canvas>
+          </div>
+          <div class="plot-wrap">
+            <div class="canvas-card-header" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span class="canvas-card-title">I(t) — Ionic Currents</span><span class="canvas-card-sub" style="flex:1">Clamped currents over time</span><span style="display:flex;gap:8px;align-items:center"><label style="display:flex;align-items:center;gap:3px;cursor:pointer;font-family:var(--mono);font-size:.7em;white-space:nowrap"><input type="checkbox" id="i-show-na" checked onchange="vcToggleI('INa')"> <span style="color:#dc2626;font-weight:600">I<sub>Na</sub></span></label><label style="display:flex;align-items:center;gap:3px;cursor:pointer;font-family:var(--mono);font-size:.7em;white-space:nowrap"><input type="checkbox" id="i-show-k" checked onchange="vcToggleI('IK')"> <span style="color:#1d4ed8;font-weight:600">I<sub>K</sub></span></label><label style="display:flex;align-items:center;gap:3px;cursor:pointer;font-family:var(--mono);font-size:.7em;white-space:nowrap"><input type="checkbox" id="i-show-l" checked onchange="vcToggleI('IL')"> <span style="color:#15803d;font-weight:600">I<sub>L</sub></span></label></span></div>
+            <canvas id="vc-cv-I" style="cursor:default" height="155"></canvas>
+          </div>
+          <div class="plot-wrap">
+            <div class="canvas-card-header" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span class="canvas-card-title">Gating Variables</span><span class="canvas-card-sub" style="flex:1">At clamped voltage</span><span style="display:flex;gap:8px;align-items:center"><label style="display:flex;align-items:center;gap:3px;cursor:pointer;font-family:var(--mono);font-size:.7em;white-space:nowrap"><input type="checkbox" id="g-show-m" checked onchange="vcToggleG('m')"> <span style="color:#dc2626;font-weight:600">m</span></label><label style="display:flex;align-items:center;gap:3px;cursor:pointer;font-family:var(--mono);font-size:.7em;white-space:nowrap"><input type="checkbox" id="g-show-h" checked onchange="vcToggleG('h')"> <span style="color:#f59e0b;font-weight:600">h</span></label><label style="display:flex;align-items:center;gap:3px;cursor:pointer;font-family:var(--mono);font-size:.7em;white-space:nowrap"><input type="checkbox" id="g-show-n" checked onchange="vcToggleG('n')"> <span style="color:#7c3aed;font-weight:600">n</span></label></span></div>
+            <canvas id="vc-cv-gates" style="cursor:default" height="130"></canvas>
+          </div>
+          <div class="plot-wrap" style="flex:1.5">
+            <div class="canvas-card-header" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <span class="canvas-card-title">I–V Relationship</span>
+            <span class="canvas-card-sub" style="flex:1">Accumulated peak currents vs V<sub>cmd</sub></span>
+            <span style="display:flex;gap:8px;align-items:center">
+              <label style="display:flex;align-items:center;gap:3px;cursor:pointer;font-family:var(--mono);font-size:.7em;white-space:nowrap"><input type="checkbox" id="iv-show-na" checked onchange="vcToggleIV('INa')"> <span style="color:#dc2626;font-weight:600">I<sub>Na</sub></span></label>
+              <label style="display:flex;align-items:center;gap:3px;cursor:pointer;font-family:var(--mono);font-size:.7em;white-space:nowrap"><input type="checkbox" id="iv-show-k" checked onchange="vcToggleIV('IK')"> <span style="color:#1d4ed8;font-weight:600">I<sub>K</sub></span></label>
+              <label style="display:flex;align-items:center;gap:3px;cursor:pointer;font-family:var(--mono);font-size:.7em;white-space:nowrap"><input type="checkbox" id="iv-show-tot" checked onchange="vcToggleIV('Itot')"> <span style="color:#374151;font-weight:600">I<sub>tot</sub></span></label>
+            </span>
+          </div>
+            <canvas id="vc-cv-IV" style="cursor:default" height="175"></canvas>
+          </div>
+        </div><!-- /sim-plots -->
+
+      </div><!-- /flex layout -->
+    </div><!-- /panel-vc -->
+<!-- /sim-body -->
+
+    <!-- AP stats bar -->
+    <div class="ap-stats">
+      <div class="ap-stat"><div class="ap-stat-num" id="stat-spikes">0</div><div class="ap-stat-label">Spikes</div></div>
+      <div class="ap-stat"><div class="ap-stat-num" id="stat-peak">—</div><div class="ap-stat-label">Peak V (mV)</div></div>
+      <div class="ap-stat"><div class="ap-stat-num" id="stat-freq">—</div><div class="ap-stat-label">Firing rate (Hz)</div></div>
+      <div class="ap-stat"><div class="ap-stat-num" id="stat-t">0</div><div class="ap-stat-label">Sim time (ms)</div></div>
+      <div class="ap-stat"><div class="ap-stat-num" id="stat-phi">1.0×</div><div class="ap-stat-label">φ (temp scale)</div></div>
+    </div>
+  </div><!-- /sim-section -->
+
+  <div class="callout" style="margin-top:16px">
+    <div class="callout-title">Try This</div>
+    <strong>Threshold:</strong> Gradually increase I<sub>ext</sub> from 0 — you'll see damped oscillations below ~6.5 µA/cm², then a full AP above. &nbsp;|&nbsp;
+    <strong>Temperature:</strong> Set T=37°C — the AP narrows dramatically (φ≈28×). &nbsp;|&nbsp;
+    <strong>TTX:</strong> Check "Block Na⁺" — no AP fires. &nbsp;|&nbsp;
+    <strong>TEA:</strong> Check "Block K⁺" — AP prolongs, no AHP.
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     §5  GATE KINETICS EXPLORER
+══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-num">§ 5</div>
+  <h2 class="section-title">Gate Kinetics Explorer</h2>
+  <div class="section-body" style="margin-bottom:20px">
+    <p>These curves — derived analytically from the rate functions — show how the steady-state activation/inactivation and time constants of each gate depend on membrane voltage. The <em>vertical dashed line</em> tracks the current simulated membrane potential. Notice how <strong>m<sub>∞</sub></strong> (Na⁺ activation) shifts right of <strong>h<sub>∞</sub></strong> (Na⁺ inactivation): depolarization quickly opens m before h shuts, creating the brief window of Na⁺ permeability that drives the action potential upstroke.</p>
+  </div>
+
+  <div class="two-col">
+    <div class="canvas-card">
+      <div class="canvas-card-header">
+        <span class="canvas-card-title">Steady-State Gating (x<sub>∞</sub>)</span>
+        <span class="canvas-card-sub">vs membrane potential</span>
+      </div>
+      <canvas id="cv-ss" height="180"></canvas>
+    </div>
+    <div class="canvas-card">
+      <div class="canvas-card-header">
+        <span class="canvas-card-title">Time Constants (τ<sub>x</sub>)</span>
+        <span class="canvas-card-sub">at current temperature</span>
+      </div>
+      <canvas id="cv-tau" height="180"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     §6  PHASE PLANE
+══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-num">§ 6</div>
+  <h2 class="section-title">Phase Portrait: V–n Plane</h2>
+  <div class="section-body" style="margin-bottom:20px">
+    <p>The phase plane projects the high-dimensional state of the neuron onto two dimensions. Plotting the membrane potential V against the K⁺ activation variable n reveals the <strong>limit cycle</strong> — the closed trajectory traced by a periodically firing neuron. During rest, the system sits at a stable fixed point (lower left). A sufficiently large perturbation kicks the system onto the unstable spiral, which falls onto the limit cycle. The system then returns to the fixed point after one AP (if sub-threshold) or continues to orbit (if tonically firing).<sup>[3]</sup></p>
+  </div>
+
+  <div class="phase-wrap">
+    <div class="phase-header" style="display:flex;align-items:baseline;gap:10px">
+      <span style="font-size:.85em;font-weight:600;color:var(--text)">V vs n Phase Portrait</span>
+      <span style="font-size:.73em;color:var(--dim)">— trajectory trails last 200 ms</span>
+      <div style="margin-left:auto;display:flex;gap:6px">
+      <button onclick="applyPreset('phasedemo')" style="padding:3px 10px;border:1px solid var(--teal);border-radius:5px;background:rgba(11,122,110,.08);font-size:.72em;cursor:pointer;color:var(--teal);font-weight:600">▶ Phase Demo</button>
+      <button onclick="clearPhase()" style="padding:3px 10px;border:1px solid var(--border2);border-radius:5px;background:var(--bg3);font-size:.72em;cursor:pointer;color:var(--muted)">Clear trail</button>
+    </div>
+    </div>
+    <canvas id="cv-phase" height="280"></canvas>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- ══════════════════════════════════════════════════════════
+     §7  REFERENCES
+══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-num">§ 7</div>
+  <h2 class="section-title">References</h2>
+  <ul class="ref-list">
+    <li class="ref-item">
+      <span class="ref-num">[1]</span>
+      <span>Hodgkin AL, Huxley AF. <em>A quantitative description of membrane current and its application to conduction and excitation in nerve.</em> Journal of Physiology. 1952;117(4):500–544. doi:10.1113/jphysiol.1952.sp004764</span>
+    </li>
+    <li class="ref-item">
+      <span class="ref-num">[2]</span>
+      <span>Nobel Committee. <em>The Nobel Prize in Physiology or Medicine 1963.</em> Nobel Foundation; 1963. Awarded to Hodgkin, Huxley, and Eccles.</span>
+    </li>
+    <li class="ref-item">
+      <span class="ref-num">[3]</span>
+      <span>Goldman MS, Compte A, Wang X-J. <em>Neurophysiology of Nerve Cells — Hodgkin-Huxley Model.</em> UC Davis / Brandeis University; 2016. Available at: <a href="https://goldmanlab.faculty.ucdavis.edu/wp-content/uploads/sites/263/2016/07/HodgkinHuxley.pdf" target="_blank">goldmanlab.faculty.ucdavis.edu</a></span>
+    </li>
+    <li class="ref-item">
+      <span class="ref-num">[4]</span>
+      <span>Gold C. <em>Hodgkin–Huxley Equations.</em> Department of Applied Mathematics and Theoretical Physics, University of Cambridge; 2007. Available at: <a href="https://www.damtp.cam.ac.uk/user/gold/pdfs/teaching/HodgkinHuxley.pdf" target="_blank">damtp.cam.ac.uk</a></span>
+    </li>
+    <li class="ref-item">
+      <span class="ref-num">[5]</span>
+      <span>Torcini A. <em>Hodgkin–Huxley Model (HH20).</em> Université de Cergy-Pontoise; 2020. Available at: <a href="https://perso.u-cergy.fr/~atorcini/MATDID/NEURO/HH20.pdf" target="_blank">perso.u-cergy.fr</a></span>
+    </li>
+    <li class="ref-item">
+      <span class="ref-num">[6]</span>
+      <span>Bertram R. <em>The Hodgkin-Huxley Model.</em> Department of Mathematics, Florida State University. Available at: <a href="https://www.math.fsu.edu/~bertram/lectures/HH_model.pdf" target="_blank">math.fsu.edu</a></span>
+    </li>
+    <li class="ref-item">
+      <span class="ref-num">[7]</span>
+      <span>Dayan P, Abbott LF. <em>Theoretical Neuroscience: Computational and Mathematical Modeling of Neural Systems.</em> MIT Press; 2001. Chapter 5: Model Neurons I: Neuroelectronics.</span>
+    </li>
+  </ul>
+
+  <div style="margin-top:24px;padding:16px 20px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;font-size:.8em;color:var(--dim)">
+    <strong style="color:var(--text)">Implementation notes:</strong> This simulation implements the standard Hodgkin–Huxley model using 4th-order Runge–Kutta integration (dt = 0.01 ms) for numerical stability. Parameter values: ḡ<sub>Na</sub>=120, ḡ<sub>K</sub>=36, ḡ<sub>L</sub>=0.3 mS/cm²; E<sub>Na</sub>=+50, E<sub>K</sub>=−77, E<sub>L</sub>=−54.4 mV; C<sub>m</sub>=1 µF/cm²; T=6.3°C. Uses modern absolute-voltage convention (V<sub>rest</sub>=−65 mV), equivalent to original H&amp;H (1952) values. Temperature scaling uses Q<sub>10</sub> = 3 as reported experimentally.<sup>[1,4]</sup> Built with vanilla JavaScript and the HTML5 Canvas API — no external libraries.
+  </div>
+</div>
+
+</div><!-- /page-wrap -->
+
+<!-- ══════════════════════════════════════════════════════════
+     JAVASCRIPT — HH SIMULATION (improved)
+══════════════════════════════════════════════════════════ -->
+<script>'use strict';
+
+// ─── PARAMETERS (MATLAB convention: Vrest=0) ─────────────
+const P={gNa:120,gK:36,gL:0.3,ENa:50,EK:-77,EL:-54.4,Cm:1,T:6.3,blockNa:false,blockK:false};
+// Default: continuous Iext=10, 120 ms window
+const STIM={type:'continuous',I0:10,tStart:0,dur:100,freq:40};
+let DT=0.01;
+const STORE_EVERY=2, MAX_HIST=15000;
+const SPEED_LEVELS=[10,25,50,100,200,350,500,800];
+let speedIdx=2, winMs=120;
+let viewStart=0, viewEnd=winMs; // CC plot view state
+
+// ─── SIM STATE ────────────────────────────────────────────
+let t=0, y=[0,0,0,0], stepCnt=0;
+let running=false, animId=null;
+let viewLocked=false;
+let currentV=0;
+
+// History arrays (rolling: capped at MAX_HIST)
+const hist={t:[],V:[],m:[],h:[],n:[],INa:[],IK:[],IL:[],Iext:[]};
+
+// AP detection
+let apSpikes=0, apLastSpike=-1e9, apPeakV=-Infinity, apSpikeTs=[];
+const AP_THRESH=-20; // mV — absolute scale, crosses on AP upstroke
+
+// Phase portrait
+const TRAIL_LEN=6000;
+const phaseV=new Float32Array(TRAIL_LEN), phaseN=new Float32Array(TRAIL_LEN);
+let phasePtr=0, phaseCount=0;
+
+// Auto-pause: triggered 20 ms after voltage becomes negligible post-stimulus
+const STAB_THRESH=1.0;  // mV  — negligible change threshold
+const STAB_DUR=50;      // ms  — must be stable this long
+let stabTimer=0, postStimStart=-1;
+
+// ─── RATE FUNCTIONS — absolute voltage scale (Vrest = −65 mV) ──
+// Internally shifts V to HH convention: V' = V + 65
+function am(V){const x=(V+65)-25;return Math.abs(x)<1e-7?1.0:-0.1*x/(Math.exp(-x/10)-1);}
+function bm(V){return 4*Math.exp(-(V+65)/18);}
+function ah(V){return 0.07*Math.exp(-(V+65)/20);}
+function bh(V){return 1/(Math.exp(-((V+65)-30)/10)+1);}
+function an(V){const x=(V+65)-10;return Math.abs(x)<1e-7?0.1:-0.01*x/(Math.exp(-x/10)-1);}
+function bn(V){return 0.125*Math.exp(-(V+65)/80);}
+function phi(){return Math.pow(3,(P.T-6.3)/10);}
+function ss(V){return[am(V)/(am(V)+bm(V)),ah(V)/(ah(V)+bh(V)),an(V)/(an(V)+bn(V))];}
+
+// ─── STIMULUS ─────────────────────────────────────────────
+function iext(t){
+  const{type,I0,tStart,dur,freq}=STIM, tEnd=tStart+dur;
+  if(t<tStart) return 0;
+  if(type==='continuous') return I0;                          // no end — always on
+  if(type==='step')  return t<=tEnd ? I0 : 0;
+  if(type==='ramp')  return t>tEnd  ? 0  : I0*(t-tStart)/dur;
+  if(type==='pulse'){
+    if(t>tEnd) return 0;
+    const p=1000/freq, pw=Math.min(1,p*0.4);
+    return (t-tStart)%p < pw ? I0 : 0;
+  }
+  if(type==='sine'){
+    if(t>tEnd) return 0;
+    return I0*Math.sin(2*Math.PI*freq*(t-tStart)/1000);
+  }
+  return 0;
+}
+
+// ─── ODE ─────────────────────────────────────────────────
+function dydt(y,t){
+  const[V,m,h,n]=y, ph=phi();
+  const INa=P.blockNa?0:P.gNa*m*m*m*h*(V-P.ENa);
+  const IK =P.blockK ?0:P.gK *n*n*n*n*(V-P.EK);
+  const IL =P.gL*(V-P.EL), Ie=iext(t);
+  return[(Ie-INa-IK-IL)/P.Cm, ph*(am(V)*(1-m)-bm(V)*m), ph*(ah(V)*(1-h)-bh(V)*h), ph*(an(V)*(1-n)-bn(V)*n)];
+}
+
+// ─── RK4 ─────────────────────────────────────────────────
+function rk4(){
+  const dt=DT;
+  const k1=dydt(y,t);
+  const y2=y.map((v,i)=>v+0.5*dt*k1[i]);
+  const k2=dydt(y2,t+0.5*dt);
+  const y3=y.map((v,i)=>v+0.5*dt*k2[i]);
+  const k3=dydt(y3,t+0.5*dt);
+  const y4=y.map((v,i)=>v+dt*k3[i]);
+  const k4=dydt(y4,t+dt);
+  y=y.map((v,i)=>v+dt/6*(k1[i]+2*k2[i]+2*k3[i]+k4[i]));
+  t+=dt; stepCnt++;
+}
+
+// ─── STORE & DETECT ──────────────────────────────────────
+function storeAndDetect(){
+  const[V,m,h,n]=y, Ie=iext(t);
+  const INa=P.blockNa?0:P.gNa*m*m*m*h*(V-P.ENa);
+  const IK =P.blockK ?0:P.gK *n*n*n*n*(V-P.EK);
+  const IL =P.gL*(V-P.EL);
+  hist.t.push(t);hist.V.push(V);hist.m.push(m);hist.h.push(h);
+  hist.n.push(n);hist.INa.push(INa);hist.IK.push(IK);hist.IL.push(IL);hist.Iext.push(Ie);
+  // Periodic memory trim: every 500 stored points, discard old data
+  // For continuous mode keep 2 full display cycles; otherwise keep MAX_HIST
+  if(hist.t.length % 500 === 0 && hist.t.length > MAX_HIST){
+    // Keep last 2 display windows (ECG needs current + previous cycle)
+    const keepMs = STIM.type==='continuous' ? winMs*2+20 : winMs*3;
+    const keepPts = Math.ceil(keepMs / (DT*STORE_EVERY));
+    const drop = Math.max(0, hist.t.length - keepPts);
+    if(drop > 0){
+      for(const k of Object.keys(hist))hist[k].splice(0,drop);
+    }
+  }
+  phaseV[phasePtr]=V;phaseN[phasePtr]=n;phasePtr=(phasePtr+1)%TRAIL_LEN;
+  if(phaseCount<TRAIL_LEN)phaseCount++;
+
+  // Spike detection
+  const prev=hist.V.length>=2?hist.V[hist.V.length-2]:V;
+  if(prev<AP_THRESH&&V>=AP_THRESH&&t-apLastSpike>3){
+    apSpikes++;if(apSpikes>1)apSpikeTs.push(t-apLastSpike);
+    apLastSpike=t;apPeakV=V;
+  }
+  if(V>apPeakV&&apSpikes>0)apPeakV=V;
+
+  // Stability / auto-pause: only fires when stimulus is NOT continuous
+  // AND after the stimulus window has ended AND V has settled
+  const isContinuous = STIM.type==='continuous';
+  if(!isContinuous){
+    const stimDone = t > STIM.tStart + STIM.dur + 2;
+    if(stimDone){
+      if(postStimStart<0) postStimStart=t;
+      if(Math.abs(V+65)<STAB_THRESH) stabTimer+=DT; else stabTimer=0;
+    }
+  }
+}
+
+function shouldAutoPause(){return P.autoPause && STIM.type!=='continuous' && stabTimer>=STAB_DUR;}
+
+// ─── INIT ─────────────────────────────────────────────────
+function initState(){
+  y=[-65,0,0,0]; t=0; stepCnt=0;
+  for(const k of Object.keys(hist))hist[k]=[];
+  apSpikes=0;apLastSpike=-1e9;apPeakV=-Infinity;apSpikeTs=[];
+  phasePtr=0;phaseCount=0;stabTimer=0;postStimStart=-1;
+}
+
+// ─── SIMULATION LOOP ──────────────────────────────────────
+function animate(){
+  if(!running)return;
+  const steps=SPEED_LEVELS[speedIdx];
+  for(let i=0;i<steps;i++){
+    rk4();
+    if(stepCnt%STORE_EVERY===0)storeAndDetect();
+    if(shouldAutoPause()){
+      // Lock view to show full trace from t=0
+      viewLocked=true;
+      stopSim();
+      const sd=document.getElementById('sim-dot');if(sd)sd.classList.add('paused');
+      const st=document.getElementById('sim-status-text');if(st)st.textContent='Stable — auto-paused';
+      renderAll();updateStats();return;
+    }
+  }
+  renderAll();updateStats();
+  animId=requestAnimationFrame(animate);
+}
+
+function startSim(){
+  if(running)return;
+  stabTimer=0;postStimStart=-1;  // clear stale pause state
+  viewLocked=false;
+  running=true;
+  const sd=document.getElementById('sim-dot');if(sd)sd.classList.remove('paused');
+  const st=document.getElementById('sim-status-text');if(st)st.textContent='Running';
+  animId=requestAnimationFrame(animate);
+}
+
+function stopSim(){
+  running=false;
+  if(animId){cancelAnimationFrame(animId);animId=null;}
+  const sd=document.getElementById('sim-dot');if(sd)sd.classList.add('paused');
+  const st=document.getElementById('sim-status-text');
+  if(st&&st.textContent==='Running')st.textContent='Paused';
+}
+
+function resetSim(){
+  stopSim();initState();
+  viewLocked=false;
+  renderAll();updateStats();
+  const st=document.getElementById('sim-status-text');if(st)st.textContent='Ready';
+}
+
+// ─── CANVAS SETUP ─────────────────────────────────────────
+const PAD={top:18,right:16,bottom:40,left:58};
+
+function setupCanvas(id){
+  const c=document.getElementById(id);
+  if(!c)return{ctx:null,W:0,H:0};
+  if(!c.dataset.lh)c.dataset.lh=c.getAttribute('height')||'160';
+  const minH=parseInt(c.dataset.lh);
+  const W=Math.max(100,c.parentElement.clientWidth||600);
+  const H=Math.max(minH,c.clientHeight||minH);
+  const dpr=window.devicePixelRatio||1;
+  c.width=Math.round(W*dpr);c.height=Math.round(H*dpr);
+  c.style.width=W+'px';c.style.height=H+'px';
+  const ctx=c.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);
+  return{ctx,W,H};
+}
+
+// ─── DRAW AXES ────────────────────────────────────────────
+function drawAxes(ctx,W,H,yMin,yMax,xMin,xMax,yLabel){
+  if(!ctx)return;
+  const p=PAD,pw=W-p.left-p.right,ph=H-p.top-p.bottom;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#f9fafb';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#fff';ctx.fillRect(p.left,p.top,pw,ph);
+  ctx.strokeStyle='#f3f4f6';ctx.lineWidth=1;
+  for(let i=0;i<=5;i++){ctx.beginPath();ctx.moveTo(p.left,p.top+ph*i/5);ctx.lineTo(p.left+pw,p.top+ph*i/5);ctx.stroke();}
+  for(let i=0;i<=6;i++){ctx.beginPath();ctx.moveTo(p.left+pw*i/6,p.top);ctx.lineTo(p.left+pw*i/6,p.top+ph);ctx.stroke();}
+  ctx.strokeStyle='#d1d5db';ctx.lineWidth=1;ctx.strokeRect(p.left,p.top,pw,ph);
+  if(yMin<0&&yMax>0){
+    const y0=p.top+ph*(1-(0-yMin)/(yMax-yMin));
+    ctx.strokeStyle='rgba(0,0,0,.1)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+    ctx.beginPath();ctx.moveTo(p.left,y0);ctx.lineTo(p.left+pw,y0);ctx.stroke();ctx.setLineDash([]);
+  }
+  const font="bold 12px 'DM Mono',monospace";
+  ctx.fillStyle='#4a5568';ctx.font=font;ctx.textAlign='right';
+  for(let i=0;i<=5;i++){
+    const val=yMin+(yMax-yMin)*(1-i/5);
+    ctx.fillText(val.toFixed(Math.abs(val)>=10||val===0?0:1),p.left-4,p.top+ph*i/5+4);
+  }
+  ctx.textAlign='center';
+  for(let i=0;i<=6;i++){
+    // X axis shows time within the current window (0..winMs)
+    ctx.fillText(Math.round(xMin+(xMax-xMin)*i/6),p.left+pw*i/6,H-8);
+  }
+  ctx.save();ctx.translate(10,p.top+ph/2);ctx.rotate(-Math.PI/2);
+  ctx.textAlign='center';ctx.fillStyle='#718096';ctx.font="bold 12px 'DM Sans',sans-serif";
+  ctx.fillText(yLabel,0,0);ctx.restore();
+}
+
+// ─── ECG-STYLE PLOT (heart rate monitor — wraps at winMs) ──────────────
+// Maps time data to X position within a fixed [0, winMs] window.
+// The current "write head" (t % winMs) sweeps right; old data shows faded.
+function plotECG(ctx,ts,vs,W,H,vMin,vMax,color,lw){
+  if(!ctx||!ts||ts.length<2)return;
+  const p=PAD,pw=W-p.left-p.right,ph=H-p.top-p.bottom;
+  // Current cycle base
+  const tCur=ts[ts.length-1];
+  const cycleBase=Math.floor(tCur/winMs)*winMs; // start of current page
+  const headX=p.left+pw*((tCur%winMs)/winMs);  // current write-head X
+
+  // ── clip to plot area ──
+  ctx.save();ctx.beginPath();ctx.rect(p.left,p.top,pw,ph);ctx.clip();
+
+  // Draw the "eraser" strip just ahead of the write head
+  const eraseW=pw*0.04; // ~4% of width
+  ctx.fillStyle='#fff';
+  ctx.fillRect(headX,p.top,eraseW,ph);
+
+  // Helper: draw a segment of time data with a given alpha
+  function drawSegment(fromT,toT,alpha){
+    ctx.strokeStyle=color;ctx.lineWidth=lw||2;ctx.globalAlpha=alpha;
+    ctx.beginPath();let first=true;
+    for(let i=0;i<ts.length;i++){
+      if(ts[i]<fromT-DT||ts[i]>toT+DT) continue;
+      // x within window: ((ts[i] - cycleBase) % winMs) / winMs * pw
+      // but for previous cycle data: offset by -winMs
+      let tOffset=(ts[i]-cycleBase);
+      if(tOffset<0)tOffset+=winMs; // wrap previous cycle
+      const x=p.left+pw*(tOffset/winMs);
+      const yc=p.top+ph*(1-(vs[i]-vMin)/(vMax-vMin));
+      const ycc=Math.max(p.top-2,Math.min(p.top+ph+2,yc));
+      if(first||Math.abs(x-(p.left+pw*((ts[i-1]-cycleBase<0?ts[i-1]-cycleBase+winMs:ts[i-1]-cycleBase)/winMs)))>pw*0.5){
+        ctx.moveTo(x,ycc);first=false;
+      }else{
+        ctx.lineTo(x,ycc);
+      }
+    }
+    ctx.stroke();ctx.globalAlpha=1;
+  }
+
+  // Previous cycle (faded) — data from [cycleBase-winMs, cycleBase]
+  if(tCur>=winMs) drawSegment(cycleBase-winMs, cycleBase, 0.28);
+  // Current cycle (full brightness) — data from [cycleBase, tCur]
+  drawSegment(cycleBase, tCur, 1.0);
+
+  // Write-head cursor line
+  ctx.strokeStyle='rgba(11,122,110,0.6)';ctx.lineWidth=1.5;ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.moveTo(headX,p.top);ctx.lineTo(headX,p.top+ph);ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.restore();
+}
+
+// ─── RENDER PLOTS ─────────────────────────────────────────
+function renderAll(){
+  if(!hist.t.length)return;
+  currentV=hist.V[hist.V.length-1];
+  renderV();renderGates();renderCurrents();renderIext_plot();
+  renderSS();renderTau();renderPhase();
+}
+
+function renderV(){
+  const{ctx,W,H}=setupCanvas('cv-V');if(!ctx)return;
+  drawAxes(ctx,W,H,-85,60,0,winMs,'mV');
+  plotECG(ctx,hist.t,hist.V,W,H,-85,60,'#0b7a6e',2);
+}
+
+function renderGates(){
+  const{ctx,W,H}=setupCanvas('cv-gates');if(!ctx)return;
+  drawAxes(ctx,W,H,0,1,0,winMs,'');
+  plotECG(ctx,hist.t,hist.m,W,H,0,1,'#dc2626',1.5);
+  plotECG(ctx,hist.t,hist.h,W,H,0,1,'#f59e0b',1.5);
+  plotECG(ctx,hist.t,hist.n,W,H,0,1,'#7c3aed',1.5);
+}
+
+function renderCurrents(){
+  const{ctx,W,H}=setupCanvas('cv-currents');if(!ctx)return;
+  const tCur=hist.t[hist.t.length-1];
+  const cycleBase=Math.floor(tCur/winMs)*winMs;
+  let mxI=5;
+  for(let i=0;i<hist.t.length;i++){
+    if(hist.t[i]<cycleBase-winMs-0.5)continue;
+    const mx=Math.max(Math.abs(hist.INa[i]),Math.abs(hist.IK[i]),Math.abs(hist.IL[i]));
+    if(mx>mxI)mxI=mx;
+  }
+  mxI=Math.max(5,mxI*1.12);
+  drawAxes(ctx,W,H,-mxI,mxI,0,winMs,'µA/cm²');
+  plotECG(ctx,hist.t,hist.INa,W,H,-mxI,mxI,'#dc2626',1.5);
+  plotECG(ctx,hist.t,hist.IK, W,H,-mxI,mxI,'#1d4ed8',1.5);
+  plotECG(ctx,hist.t,hist.IL, W,H,-mxI,mxI,'#15803d',1);
+}
+
+function renderIext_plot(){
+  const{ctx,W,H}=setupCanvas('cv-Iext');if(!ctx)return;
+  const maxI=Math.max(Math.abs(STIM.I0),1);
+  const yMin=STIM.I0<0?-maxI*1.2:-maxI*0.15, yMax=maxI*1.2;
+  drawAxes(ctx,W,H,yMin,yMax,0,winMs,'µA/cm²');
+  if(hist.t.length>1){
+    plotECG(ctx,hist.t,hist.Iext,W,H,yMin,yMax,'#0b7a6e',2);
+  } else {
+    // Preview
+    const p=PAD,pw=W-p.left-p.right,ph=H-p.top-p.bottom;
+    const step=0.5, pts=[],is=[];
+    for(let tt=0;tt<=winMs;tt+=step){pts.push(tt);is.push(iext(tt));}
+    // Draw as normal trace
+    ctx.save();ctx.strokeStyle='rgba(11,122,110,.5)';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+    ctx.beginPath();let first=true;
+    for(let i=0;i<pts.length;i++){
+      const x=p.left+pw*(pts[i]/winMs);
+      const yc=p.top+ph*(1-(is[i]-yMin)/(yMax-yMin));
+      first?ctx.moveTo(x,yc):ctx.lineTo(x,yc);first=false;
+    }
+    ctx.stroke();ctx.setLineDash([]);ctx.restore();
+  }
+}
+
+function renderSS(){
+  const{ctx,W,H}=setupCanvas('cv-ss');if(!ctx)return;
+  const Vs=[];for(let V=-20;V<=130;V+=0.5)Vs.push(V);
+  const p=PAD,pw=W-p.left-p.right,ph=H-p.top-p.bottom;
+  drawAxes(ctx,W,H,0,1,-85,65,'x∞');
+  const cols=['#dc2626','#f59e0b','#7c3aed'],lbls=['m∞','h∞','n∞'];
+  for(let c=0;c<3;c++){
+    ctx.beginPath();ctx.strokeStyle=cols[c];ctx.lineWidth=2;
+    Vs.forEach((V,i)=>{const s=ss(V);const x=p.left+pw*(V+20)/150;const y=p.top+ph*(1-s[c]);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+    ctx.stroke();
+  }
+  const xV=p.left+pw*(currentV+20)/150;
+  ctx.strokeStyle='rgba(11,122,110,.5)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.moveTo(xV,p.top);ctx.lineTo(xV,p.top+ph);ctx.stroke();ctx.setLineDash([]);
+  [[30,0],[-10,1],[10,2]].forEach(([V,c])=>{const s=ss(V);ctx.fillStyle=cols[c];ctx.font="bold 11px 'DM Mono',monospace";ctx.textAlign='left';ctx.fillText(lbls[c],p.left+pw*(V+20)/150+3,p.top+ph*(1-s[c])-3);});
+}
+
+function renderTau(){
+  const{ctx,W,H}=setupCanvas('cv-tau');if(!ctx)return;
+  const ph2=phi();
+  const Vs=[];for(let V=-20;V<=130;V+=0.5)Vs.push(V);
+  const taus=Vs.map(V=>[1/((am(V)+bm(V))*ph2),1/((ah(V)+bh(V))*ph2),1/((an(V)+bn(V))*ph2)]);
+  const mxT=Math.max(...taus.flat())*1.1;
+  const p=PAD,pw=W-p.left-p.right,pph=H-p.top-p.bottom;
+  drawAxes(ctx,W,H,0,mxT,-85,65,'τ (ms)');
+  const cols=['#dc2626','#f59e0b','#7c3aed'],lbls=['τm','τh','τn'];
+  for(let c=0;c<3;c++){
+    ctx.beginPath();ctx.strokeStyle=cols[c];ctx.lineWidth=2;
+    Vs.forEach((V,i)=>{const x=p.left+pw*(V+20)/150;const y=p.top+pph*(1-taus[i][c]/mxT);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+    ctx.stroke();
+  }
+  [[35,0],[-10,1],[15,2]].forEach(([V,c])=>{const idx=Math.round((V+20)/0.5);if(idx<0||idx>=taus.length)return;const τ=taus[idx][c];ctx.fillStyle=cols[c];ctx.font="bold 11px 'DM Mono',monospace";ctx.textAlign='left';ctx.fillText(lbls[c],p.left+pw*(V+20)/150+3,p.top+pph*(1-τ/mxT)-3);});
+  const xV=p.left+pw*(currentV+20)/150;ctx.strokeStyle='rgba(11,122,110,.5)';ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(xV,p.top);ctx.lineTo(xV,p.top+pph);ctx.stroke();ctx.setLineDash([]);
+}
+
+function renderPhase(){
+  const{ctx,W,H}=setupCanvas('cv-phase');if(!ctx)return;
+  const p={top:20,right:20,bottom:36,left:54},pw=W-p.left-p.right,ph=H-p.top-p.bottom;
+  ctx.clearRect(0,0,W,H);ctx.fillStyle='#f9fafb';ctx.fillRect(0,0,W,H);ctx.fillStyle='#fff';ctx.fillRect(p.left,p.top,pw,ph);
+  ctx.strokeStyle='#f3f4f6';ctx.lineWidth=1;
+  for(let i=0;i<=5;i++){ctx.beginPath();ctx.moveTo(p.left,p.top+ph*i/5);ctx.lineTo(p.left+pw,p.top+ph*i/5);ctx.stroke();ctx.beginPath();ctx.moveTo(p.left+pw*i/5,p.top);ctx.lineTo(p.left+pw*i/5,p.top+ph);ctx.stroke();}
+  ctx.strokeStyle='#d1d5db';ctx.lineWidth=1;ctx.strokeRect(p.left,p.top,pw,ph);
+  const vMin=-85,vMax=65,nMin=0,nMax=1;
+  const xp=(n)=>p.left+pw*(n-nMin)/(nMax-nMin), yp=(v)=>p.top+ph*(1-(v-vMin)/(vMax-vMin));
+
+  // ── Draw trajectory FIRST so annotations layer on top ────────────
+  const cnt=Math.min(phaseCount,TRAIL_LEN);
+  if(cnt>2){
+    for(let i=1;i<cnt;i++){
+      const a=(phasePtr-cnt+i-1+TRAIL_LEN)%TRAIL_LEN,b=(phasePtr-cnt+i+TRAIL_LEN)%TRAIL_LEN;
+      ctx.strokeStyle=`rgba(11,122,110,${Math.pow(i/cnt,0.6)*0.9})`;ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.moveTo(xp(phaseN[a]),yp(phaseV[a]));ctx.lineTo(xp(phaseN[b]),yp(phaseV[b]));ctx.stroke();
+    }
+    const ci=(phasePtr-1+TRAIL_LEN)%TRAIL_LEN;
+    // Current position dot — pulsing larger dot at simulation tip
+    ctx.fillStyle='rgba(11,122,110,0.9)';
+    ctx.beginPath();ctx.arc(xp(phaseN[ci]),yp(phaseV[ci]),6,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+  } else {
+    ctx.fillStyle='#9ca3af';ctx.font="12px 'DM Sans',sans-serif";ctx.textAlign='center';
+    ctx.fillText('Run the simulation to see the phase portrait',p.left+pw/2,p.top+ph/2-8);
+    ctx.fillText('or click "Phase Demo" preset',p.left+pw/2,p.top+ph/2+12);
+  }
+
+  // ── Compute annotation positions from live simulation data ────────
+  // Rest = fixed point of HH system (analytical, never changes)
+  const restV=-65, restN=0.317; // n∞(-65 mV) = 0.317
+  let threshV=-55, threshN=0.34;
+  let peakV=20, peakN=0.42;
+
+  if(hist.V && hist.V.length>10){
+
+    // Peak: from spike detection
+    if(apPeakV>-Infinity && apPeakV>-40){
+      peakV=apPeakV;
+      // Find n at the time of peak V
+      if(apLastSpike>0 && hist.t.length>0){
+        let bestIdx=0, bestDist=Infinity;
+        for(let i=0;i<hist.t.length;i++){
+          const d=Math.abs(hist.t[i]-apLastSpike);
+          if(d<bestDist){ bestDist=d; bestIdx=i; }
+        }
+        // Find actual peak index near apLastSpike (within ±2ms)
+        let pkIdx=bestIdx;
+        for(let i=Math.max(0,bestIdx-200);i<Math.min(hist.t.length,bestIdx+200);i++){
+          if(hist.V[i]>hist.V[pkIdx]) pkIdx=i;
+        }
+        peakN=hist.n[pkIdx];
+        peakV=hist.V[pkIdx];
+      }
+    }
+
+    // Threshold: find point with maximum dV/dt on most recent upstroke
+    if(hist.V.length>5){
+      let maxDV=0, threshIdx=-1;
+      for(let i=1;i<hist.V.length;i++){
+        const dv=hist.V[i]-hist.V[i-1];
+        if(dv>maxDV && hist.V[i]>-65 && hist.V[i]<0){
+          maxDV=dv; threshIdx=i;
+        }
+      }
+      if(threshIdx>=0){ threshV=hist.V[threshIdx]; threshN=hist.n[threshIdx]; }
+    }
+  }
+
+  // ── Draw annotations ON TOP of trajectory ─────────────────────────
+  const annotations=[
+    {V:restV,  n:restN,   label:'Rest',      align:'left',  color:'#22c55e'},
+    {V:threshV,n:threshN, label:'Threshold', align:'left',  color:'#f59e0b'},
+    {V:peakV,  n:peakN,   label:'AP Peak',   align:'center', color:'#ef4444'},
+  ];
+  ctx.font="bold 11px 'DM Sans',sans-serif";
+  for(const{V,n,label,align,color} of annotations){
+    const ax=xp(n), ay=yp(V);
+    if(ax<p.left-5||ax>p.left+pw+5||ay<p.top-5||ay>p.top+ph+5) continue;
+    // Marker: square for Rest (fixed point), circle for Threshold & Peak
+    ctx.fillStyle=color;
+    if(label==='Rest'){
+      ctx.fillRect(ax-4,ay-4,8,8);
+      ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.strokeRect(ax-4,ay-4,8,8);
+    } else {
+      ctx.beginPath();ctx.arc(ax,ay,4,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+    }
+    // Label
+    ctx.fillStyle=color;
+    ctx.textAlign=align||'center';
+    const ox=align==='left'?8:align==='right'?-8:0;
+    ctx.fillText(label,ax+ox,ay-7);
+  }
+
+  // ── Axis labels ───────────────────────────────────────────────────
+  ctx.fillStyle='#6b7280';ctx.font="bold 12px 'DM Mono',monospace";ctx.textAlign='right';
+  for(let i=0;i<=5;i++)ctx.fillText((vMin+(vMax-vMin)*(1-i/5)).toFixed(0),p.left-4,p.top+ph*i/5+4);
+  ctx.textAlign='center';ctx.font="bold 12px 'DM Mono',monospace";
+  for(let i=0;i<=5;i++)ctx.fillText((nMin+(nMax-nMin)*i/5).toFixed(2),p.left+pw*i/5,H-8);
+  ctx.save();ctx.translate(12,p.top+ph/2);ctx.rotate(-Math.PI/2);
+  ctx.textAlign='center';ctx.fillStyle='#4a5568';ctx.font="bold 12px 'DM Sans',sans-serif";
+  ctx.fillText('V (mV)',0,0);ctx.restore();
+  ctx.fillStyle='#4a5568';ctx.font="bold 12px 'DM Sans',sans-serif";
+  ctx.textAlign='center';ctx.fillText('n (K⁺ activation)',p.left+pw/2,H-2);
+}
+
+// ─── STATS ────────────────────────────────────────────────
+function updateStats(){
+  const el=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  el('stat-spikes',apSpikes);
+  el('stat-peak',apSpikes>0?apPeakV.toFixed(1):'—');
+  const meanISI=apSpikeTs.length>0?apSpikeTs.reduce((a,b)=>a+b,0)/apSpikeTs.length:0;
+  el('stat-freq',meanISI>0?(1000/meanISI).toFixed(1):'—');
+  el('stat-t',t.toFixed(0));
+  el('stat-phi',phi().toFixed(2)+'×');
+}
+
+// ─── UI HELPERS ───────────────────────────────────────────
+function setSpeed(v){
+  speedIdx=parseInt(v)-1;
+  const labels=['⅛×','¼×','½×','1×','2×','4×','7×','14×'];
+  const el=document.getElementById('sl-speed-val');if(el)el.textContent=labels[speedIdx]||v+'×';
+}
+
+function updateWindow(){
+  // Called when winMs slider changes; refit ECG view to new window size
+  if(!viewLocked){ viewStart=Math.max(0,t-winMs); viewEnd=Math.max(winMs,t); }
+}
+
+function slUpdate(param,val,valId){
+  const dp=param==='EL'?1:param==='gL'?2:param==='Cm'?1:param==='T'?1:0;
+  const numVal=parseFloat(val);P[param]=numVal;
+  const spanEl=document.getElementById(valId);if(spanEl)spanEl.textContent=numVal.toFixed(dp);
+  const numEl=document.getElementById(valId.replace('-val','-num'));if(numEl)numEl.value=numVal.toFixed(dp);
+  if(param==='T'){const e=document.getElementById('stat-phi');if(e)e.textContent=phi().toFixed(2)+'×';renderSS();renderTau();}
+  if(param==='win'){winMs=numVal;if(!running){renderAll();}}
+}
+
+
+function slUpdateDT(val){
+  const v=parseFloat(val);
+  if(isNaN(v)||v<=0)return;
+  DT=Math.min(0.115,Math.max(0.005,v));
+  const dp=3;
+  const spanEl=document.getElementById('sl-dt-val');if(spanEl)spanEl.textContent=DT.toFixed(dp);
+  const numEl=document.getElementById('sl-dt-num');if(numEl)numEl.value=DT.toFixed(dp);
+  // Update subtitle to reflect current dt
+  const sub=document.querySelector('.sim-subtitle');
+  if(sub) sub.textContent=`4th-order Runge–Kutta · dt = ${DT.toFixed(3)} ms · Squid giant axon · V_rest = −65 mV`;
+  // Warn if dt is large — likely to be numerically unstable
+  const st=document.getElementById('sim-status-text');
+  if(st && DT>0.1) st.textContent='⚠ Large dt — may be unstable';
+}
+
+function updateStim(){
+  STIM.type=document.getElementById('stim-type').value;
+  STIM.I0=parseFloat(document.getElementById('sl-I0').value);
+  STIM.tStart=parseFloat(document.getElementById('sl-tStart').value);
+  STIM.dur=parseFloat(document.getElementById('sl-dur').value);
+  STIM.freq=parseFloat(document.getElementById('sl-freq').value);
+  const showFreq=['pulse','sine'].includes(STIM.type);
+  const frEl=document.getElementById('freq-row');
+  if(frEl){ if(!showFreq) frEl.classList.add('disabled'); else frEl.classList.remove('disabled'); }
+  const isCont=STIM.type==='continuous';
+  const durRow=document.getElementById('dur-row');
+  if(durRow){ if(isCont) durRow.classList.add('disabled'); else durRow.classList.remove('disabled'); }
+  const t0=STIM.tStart,t1=STIM.tStart+STIM.dur;
+  const d0=document.getElementById('stim-t0'),d1=document.getElementById('stim-t1');
+  if(d0)d0.textContent=t0.toFixed(0);if(d1)d1.textContent=t1.toFixed(0);
+  if(!running)renderIext_plot();
+}
+
+function clearPhase(){phasePtr=0;phaseCount=0;renderPhase();}
+
+// ─── PRESETS ──────────────────────────────────────────────
+const PRESETS={
+  standard:  {gNa:120,gK:36,gL:0.3,ENa:50,EK:-77,EL:-54.4,Cm:1,T:6.3,I0:10,tStart:0,dur:100,type:'continuous',freq:40,win:120,speed:3,autoStart:true},
+  step100:   {gNa:120,gK:36,gL:0.3,ENa:50,EK:-77,EL:-54.4,Cm:1,T:6.3,I0:10,tStart:0,dur:100,type:'step',    freq:40,win:140,speed:3},
+  body:      {gNa:120,gK:36,gL:0.3,ENa:50,EK:-77,EL:-54.4,Cm:1,T:37, I0:10,tStart:0,dur:20, type:'continuous',freq:40,win:25, speed:2},
+  burst:     {gNa:120,gK:36,gL:0.3,ENa:50,EK:-77,EL:-54.4,Cm:1,T:6.3,I0:20,tStart:0,dur:200,type:'step',    freq:40,win:220,speed:4},
+  subthresh: {gNa:120,gK:36,gL:0.3,ENa:50,EK:-77,EL:-54.4,Cm:1,T:6.3,I0:5, tStart:0,dur:100,type:'step',    freq:40,win:140,speed:3},
+  phasedemo: {gNa:120,gK:36,gL:0.3,ENa:50,EK:-77,EL:-54.4,Cm:1,T:6.3,I0:12,tStart:0,dur:150,type:'continuous',freq:40,win:160,speed:6,autoStart:true,keepPhase:true},
+};
+
+function applyPreset(name){
+  const pr=PRESETS[name];if(!pr)return;
+  P.gNa=pr.gNa;P.gK=pr.gK;P.gL=pr.gL;P.ENa=pr.ENa;P.EK=pr.EK;P.EL=pr.EL;P.Cm=pr.Cm;P.T=pr.T;
+  STIM.I0=pr.I0;STIM.tStart=pr.tStart;STIM.dur=pr.dur;STIM.type=pr.type;STIM.freq=pr.freq;
+  winMs=pr.win;speedIdx=(pr.speed||3)-1;
+  const sl=(id,val,dp)=>{
+    const e=document.getElementById(id);if(e)e.value=val;
+    const d=document.getElementById(id+'-val');if(d)d.textContent=parseFloat(val).toFixed(dp??0);
+    const n=document.getElementById(id+'-num');if(n)n.value=parseFloat(val).toFixed(dp??0);
+  };
+  sl('sl-gNa',pr.gNa);sl('sl-gK',pr.gK);sl('sl-gL',pr.gL,2);
+  sl('sl-ENa',pr.ENa);sl('sl-EK',pr.EK);sl('sl-EL',pr.EL,1);
+  sl('sl-Cm',pr.Cm,1);sl('sl-T',pr.T,1);
+  // Reset dt to default when applying a preset
+  const dtPreset=pr.dt||0.01;
+  DT=dtPreset;
+  const dtSl=document.getElementById('sl-dt');if(dtSl)dtSl.value=dtPreset;
+  const dtNum=document.getElementById('sl-dt-num');if(dtNum)dtNum.value=dtPreset.toFixed(3);
+  sl('sl-I0',pr.I0);sl('sl-tStart',pr.tStart);sl('sl-dur',pr.dur);sl('sl-freq',pr.freq);sl('sl-win',pr.win);
+  const spEl=document.getElementById('sl-speed');if(spEl)spEl.value=pr.speed||3;
+  const labels=['⅛×','¼×','½×','1×','2×','4×','7×','14×'];
+  const spV=document.getElementById('sl-speed-val');if(spV)spV.textContent=labels[speedIdx]||'—';
+  const stEl=document.getElementById('stim-type');if(stEl)stEl.value=pr.type;
+  // Show/hide dur row based on type
+  const isCont2=pr.type==='continuous';
+  const durRow=document.getElementById('dur-row');
+  if(durRow){ if(isCont2) durRow.classList.add('disabled'); else durRow.classList.remove('disabled'); }
+  const showFreq=['pulse','sine'].includes(pr.type);
+  const frEl=document.getElementById('freq-row');
+  if(frEl){ if(!showFreq) frEl.classList.add('disabled'); else frEl.classList.remove('disabled'); }
+  if(pr.keepPhase){stopSim();initState();}else{resetSim();}
+  renderSS();renderTau();
+  if(pr.autoStart)setTimeout(startSim,100);
+}
+
+function applyDefaults(){applyPreset('standard');}
+
+// ─── INITIAL SIMULATION ───────────────────────────────────
+function runInitialSimulation(){
+  if(running)return;
+  DT=0.01; // reset to stable default for initial simulation
+  initState();
+  // Run 12000 steps = 120 ms full window (complete stimulus trace)
+  for(let i=0;i<12000;i++){rk4();if(stepCnt%STORE_EVERY===0)storeAndDetect();}
+  renderAll();updateStats();
+  const st=document.getElementById('sim-status-text');if(st)st.textContent='Ready — click ▶ Run';
+}
+
+
+// ─── LOAD ─────────────────────────────────────────────────
+window.addEventListener('load',()=>{
+  initState();
+  const labels=['⅛×','¼×','½×','1×','2×','4×','7×','14×'];
+  const spV=document.getElementById('sl-speed-val');if(spV)spV.textContent=labels[speedIdx];
+  const dtSlEl=document.getElementById('sl-dt');if(dtSlEl)dtSlEl.value='0.01';
+  const durRowInit=document.getElementById('dur-row');
+  if(durRowInit) durRowInit.classList.add('disabled');
+  const freqRowInit=document.getElementById('freq-row');
+  if(freqRowInit) freqRowInit.classList.add('disabled');
+  const dtNumEl=document.getElementById('sl-dt-num');if(dtNumEl)dtNumEl.value='0.010';
+  renderSS();renderTau();renderPhase();renderIext_plot();updateStats();
+  runInitialSimulation();
+  vcInitInteraction(); // attach zoom/pan to VC canvases on page load
+});
+
+window.addEventListener('resize',()=>{
+  if(hist.t.length>0)renderAll();else{renderSS();renderTau();renderPhase();}
+});
+
+// ════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════
+
+
+// ─── plotTrace: generic straight-line plot for voltage clamp ─────────────
+// (plotECG is used for current-clamp ECG wrap; this is a simple x-y trace)
+function plotTrace(ctx, xs, ys, W, H, yMin, yMax, xMin, xMax, color, lw) {
+  if (!ctx || !xs || xs.length < 2) return;
+  const p = PAD, pw = W-p.left-p.right, ph = H-p.top-p.bottom;
+  ctx.save();
+  ctx.beginPath(); ctx.rect(p.left, p.top, pw, ph); ctx.clip();
+  ctx.strokeStyle = color; ctx.lineWidth = lw || 1.5;
+  ctx.beginPath();
+  let first = true;
+  for (let i = 0; i < xs.length; i++) {
+    if (xs[i] < xMin - 0.01 || xs[i] > xMax + 0.01) continue;
+    const x = p.left + pw * ((xs[i] - xMin) / (xMax - xMin));
+    const y = p.top  + ph * (1 - (ys[i] - yMin) / (yMax - yMin));
+    if (first) { ctx.moveTo(x, y); first = false; }
+    else         ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+
+// ════════════════════════════════════════════════════════════════
+// VOLTAGE CLAMP ENGINE — clean rewrite, verified against Python sim
+// ════════════════════════════════════════════════════════════════
+
+// ── State ────────────────────────────────────────────────────────
+const vcP = {
+  gNa:120, gK:36, gL:0.3, ENa:50, EK:-77, EL:-54.4,
+  blockNa:false, blockK:false,
+  Vhold:-65, Vcmd:20, tStart:10, dur:40, T:6.3,
+};
+const vcDT = 0.01;
+let vcT = 0;
+let vcY = [-65, 0.053, 0.596, 0.318]; // [V, m, h, n] at rest (V=-65 mV)
+let vcRunning = false, vcAnimId = null;
+const vcHist = {t:[],V:[],m:[],h:[],n:[],INa:[],IK:[],IL:[]};
+const vcMAX = 12000; // 120ms @ dt=0.01, every step stored
+
+// I–V accumulated data
+const ivData = [];
+// Which curves to show on I-V plot
+const vcIVShow = {INa: true, IK: true, Itot: true};
+const vcIShow  = {INa: true, IK: true, IL: true};   // I(t) plot toggles
+const vcGShow  = {m: true, h: true, n: true};        // Gates plot toggles
+// Persistent run history — each entry is {t,V,INa,IK,IL,m,h,n,vcmd,vhold}
+const vcAllRuns = [];
+
+// ── Voltage waveform ─────────────────────────────────────────────
+function vcVoltage(t) {
+  const tEnd = vcP.tStart + vcP.dur;
+  if (t < vcP.tStart) return vcP.Vhold;
+  if (t <= tEnd)       return vcP.Vcmd;
+  return vcP.Vhold;
+}
+
+// ── Gate ODE (V is clamped — only m, h, n evolve) ────────────────
+function phiVC() { return Math.pow(3, (vcP.T - 6.3) / 10); }
+
+function vcDydt(y, t) {
+  const V = vcVoltage(t);
+  const [, m, h, n] = y;
+  const ph = phiVC();
+  return [
+    0,
+    ph * (am(V)*(1-m) - bm(V)*m),
+    ph * (ah(V)*(1-h) - bh(V)*h),
+    ph * (an(V)*(1-n) - bn(V)*n),
+  ];
+}
+
+// ── RK4 ──────────────────────────────────────────────────────────
+function vcRK4() {
+  const dt = vcDT;
+  const k1 = vcDydt(vcY, vcT);
+  const y2 = vcY.map((v,i) => v + 0.5*dt*k1[i]);
+  const k2 = vcDydt(y2, vcT + 0.5*dt);
+  const y3 = vcY.map((v,i) => v + 0.5*dt*k2[i]);
+  const k3 = vcDydt(y3, vcT + 0.5*dt);
+  const y4 = vcY.map((v,i) => v + dt*k3[i]);
+  const k4 = vcDydt(y4, vcT + dt);
+  vcY = vcY.map((v,i) => v + (dt/6)*(k1[i] + 2*k2[i] + 2*k3[i] + k4[i]));
+  vcY[0] = vcVoltage(vcT + dt); // enforce clamp
+  vcT += dt;
+}
+
+// ── Store ─────────────────────────────────────────────────────────
+function vcStore() {
+  const [V, m, h, n] = vcY;
+  const INa = vcP.blockNa ? 0 : vcP.gNa * m*m*m * h * (V - vcP.ENa);
+  const IK  = vcP.blockK  ? 0 : vcP.gK  * n*n*n*n   * (V - vcP.EK);
+  const IL  = vcP.gL * (V - vcP.EL);
+  vcHist.t.push(vcT);  vcHist.V.push(V);
+  vcHist.m.push(m);    vcHist.h.push(h);   vcHist.n.push(n);
+  vcHist.INa.push(INa);vcHist.IK.push(IK); vcHist.IL.push(IL);
+  if (vcHist.t.length > vcMAX) {
+    const drop = vcHist.t.length - vcMAX;
+    for (const k of Object.keys(vcHist)) vcHist[k].splice(0, drop);
+  }
+}
+
+// ── Duration of one clamp run ────────────────────────────────────
+function vcTotalDur() { return vcP.tStart + vcP.dur + 10; }
+
+// ── Animation ─────────────────────────────────────────────────────
+const VC_STEPS_PER_FRAME = 50;
+
+function vcAnimate() {
+  if (!vcRunning) return;
+  for (let i = 0; i < VC_STEPS_PER_FRAME; i++) {
+    vcRK4();
+    vcStore();
+    if (vcT >= vcTotalDur()) {
+      vcStop();
+      vcSaveRun();
+      vcRecordIV();
+      vcDrawAll();
+      return;
+    }
+  }
+  vcDrawAll();
+  vcAnimId = requestAnimationFrame(vcAnimate);
+}
+
+function vcRun() {
+  if (vcRunning) return;
+  // Sync params from sliders before starting
+  vcSyncSliders();
+  // Re-initialize gates at current Vhold
+  vcInitGates();
+  vcRunning = true;
+  const st = document.getElementById('sim-status-text');
+  if (st) st.textContent = 'VC Running…';
+  vcAnimId = requestAnimationFrame(vcAnimate);
+}
+
+function vcStop() {
+  vcRunning = false;
+  if (vcAnimId) { cancelAnimationFrame(vcAnimId); vcAnimId = null; }
+  const st = document.getElementById('sim-status-text');
+  if (st && st.textContent === 'VC Running…') st.textContent = 'VC Paused';
+}
+
+function vcReset() {
+  vcStop();
+  vcSyncSliders();
+  vcInitGates();
+  for (const k of Object.keys(vcHist)) vcHist[k] = [];
+  vcAllRuns.length = 0; // clear all trace history
+  vcT = 0;
+  vcDrawAll();
+  const st = document.getElementById('sim-status-text');
+  if (st) st.textContent = 'VC Ready — click ▶ Run Clamp';
+}
+
+// ── Sync all VC slider values into vcP ──────────────────────────
+function vcSyncSliders() {
+  const map = {
+    'vc-vhold': 'Vhold', 'vc-vcmd': 'Vcmd',
+    'vc-tpre': 'tStart', 'vc-dur': 'dur',
+    'vc-gna': 'gNa',    'vc-gk': 'gK',  'vc-gl': 'gL',
+    'vc-ena': 'ENa',    'vc-ek': 'EK',  'vc-el': 'EL',  'vc-T': 'T',
+  };
+  for (const [id, field] of Object.entries(map)) {
+    const el = document.getElementById(id);
+    if (el) {
+      const v = parseFloat(el.value);
+      if (!isNaN(v)) vcP[field] = v;
+    }
+  }
+  const naEl = document.getElementById('vc-block-na');
+  const kEl  = document.getElementById('vc-block-k');
+  if (naEl) vcP.blockNa = naEl.checked;
+  if (kEl)  vcP.blockK  = kEl.checked;
+}
+
+// ── Initialize gates at steady state for current Vhold ──────────
+function vcInitGates() {
+  const V0 = vcP.Vhold;
+  const m0 = am(V0)/(am(V0)+bm(V0));
+  const h0 = ah(V0)/(ah(V0)+bh(V0));
+  const n0 = an(V0)/(an(V0)+bn(V0));
+  vcY = [V0, m0, h0, n0];
+  vcT = 0;
+}
+
+// ── UI helpers ───────────────────────────────────────────────────
+function vcSlider(param, val) {
+  const v = parseFloat(val);
+  if (isNaN(v)) return;
+  const map = {
+    vhold:'Vhold', vcmd:'Vcmd', tpre:'tStart', dur:'dur',
+    gna:'gNa', gk:'gK', gl:'gL', ena:'ENa', ek:'EK', el:'EL', T:'T',
+  };
+  if (map[param] !== undefined) vcP[map[param]] = v;
+  const numEl = document.getElementById(`vc-${param}-num`);
+  if (numEl) numEl.value = v;
+}
+
+function syncVCNum(sliderId, val) {
+  const el = document.getElementById(sliderId);
+  if (el) { el.value = val; el.dispatchEvent(new Event('input')); }
+}
+
+// ── I–V curve ────────────────────────────────────────────────────
+
+// Save completed run to persistent history
+function vcSaveRun() {
+  if (!vcHist.t.length) return;
+  vcAllRuns.push({
+    t:    [...vcHist.t],
+    V:    [...vcHist.V],
+    INa:  [...vcHist.INa],
+    IK:   [...vcHist.IK],
+    IL:   [...vcHist.IL],
+    m:    [...vcHist.m],
+    h:    [...vcHist.h],
+    n:    [...vcHist.n],
+    vcmd: vcP.Vcmd,
+    vhold: vcP.Vhold,
+  });
+  // Keep last 20 runs max
+  if (vcAllRuns.length > 20) vcAllRuns.shift();
+}
+
+function vcRecordIV() {
+  if (!vcHist.t.length) return;
+  let peakINa = 0, peakIK = 0, peakItot = 0;
+  for (let i = 0; i < vcHist.t.length; i++) {
+    const t = vcHist.t[i];
+    if (t < vcP.tStart || t > vcP.tStart + vcP.dur) continue;
+    const itot = vcHist.INa[i] + vcHist.IK[i] + vcHist.IL[i];
+    if (vcHist.INa[i] < peakINa) peakINa = vcHist.INa[i];
+    if (vcHist.IK[i]  > peakIK)  peakIK  = vcHist.IK[i];
+    if (Math.abs(itot) > Math.abs(peakItot)) peakItot = itot;
+  }
+  const Vc = vcP.Vcmd;
+  const existing = ivData.findIndex(d => d.vcmd === Vc);
+  const entry = {vcmd:Vc, peakINa, peakIK, peakItot};
+  if (existing >= 0) ivData[existing] = entry; else ivData.push(entry);
+  ivData.sort((a,b) => a.vcmd - b.vcmd);
+  vcUpdateIVTable();
+}
+
+function vcUpdateIVTable() {
+  const tbody = document.getElementById('iv-tbody');
+  if (!tbody) return;
+  if (!ivData.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--dim);padding:8px">Run clamp at different V<sub>cmd</sub> to populate</td></tr>';
+    return;
+  }
+  tbody.innerHTML = ivData.map(d =>
+    `<tr><td>${d.vcmd}</td><td style="color:#dc2626">${d.peakINa.toFixed(2)}</td><td style="color:#1d4ed8">${d.peakIK.toFixed(2)}</td><td>${d.peakItot.toFixed(2)}</td></tr>`
+  ).join('');
+}
+
+function vcClearIV() {
+  ivData.length = 0;
+  vcUpdateIVTable();
+  vcDrawIV();
+}
+
+// ── Drawing ───────────────────────────────────────────────────────
+
+
+// ── Voltage Sweep ────────────────────────────────────────────────
+// Runs multiple clamps sequentially at evenly-spaced Vcmd values.
+let vcSweepQueue = [];
+let vcSweepIdx = 0;
+
+function vcStartSweep() {
+  if (vcRunning) return;
+  vcSyncSliders();
+  // Read sweep range from UI
+  const vFrom  = parseFloat(document.getElementById('vc-sweep-from')?.value  ?? -20);
+  const vTo    = parseFloat(document.getElementById('vc-sweep-to')?.value    ?? 100);
+  const vStep  = parseFloat(document.getElementById('vc-sweep-step')?.value  ?? 10);
+  if (isNaN(vFrom) || isNaN(vTo) || isNaN(vStep) || vStep <= 0) return;
+  vcSweepQueue = [];
+  const sign = vTo >= vFrom ? 1 : -1;
+  for (let v = vFrom; sign*(v - vTo) <= 1e-6; v += sign * Math.abs(vStep)) {
+    vcSweepQueue.push(Math.round(v * 100) / 100);
+  }
+  if (!vcSweepQueue.length) return;
+  vcSweepIdx = 0;
+  const prog = document.getElementById('vc-sweep-prog');
+  if (prog) { prog.textContent = `0 / ${vcSweepQueue.length}`; prog.style.display=''; }
+  vcRunNextSweep();
+}
+
+function vcRunNextSweep() {
+  if (vcSweepIdx >= vcSweepQueue.length) {
+    // All done — draw final result and update UI
+    vcDrawAll();
+    const prog = document.getElementById('vc-sweep-prog');
+    if (prog) prog.textContent = 'Done ✓';
+    const st = document.getElementById('sim-status-text');
+    if (st) st.textContent = `Sweep complete — ${vcSweepQueue.length} steps`;
+    return;
+  }
+  const vcmd = vcSweepQueue[vcSweepIdx];
+  vcP.Vcmd = vcmd;
+  const slEl = document.getElementById('vc-vcmd');   if (slEl)  slEl.value  = vcmd;
+  const numEl = document.getElementById('vc-vcmd-num'); if (numEl) numEl.value = vcmd;
+
+  // Run this voltage step SYNCHRONOUSLY — no animation, just crunch numbers
+  vcInitGates();
+  for (const k of Object.keys(vcHist)) vcHist[k] = [];
+  vcT = 0;
+  const nSteps = Math.ceil(vcTotalDur() / vcDT);
+  for (let i = 0; i < nSteps; i++) { vcRK4(); vcStore(); }
+  vcSaveRun();
+  vcRecordIV();
+
+  vcSweepIdx++;
+  const prog = document.getElementById('vc-sweep-prog');
+  if (prog) prog.textContent = `${vcSweepIdx} / ${vcSweepQueue.length}`;
+
+  // Yield to browser every 4 steps so UI stays responsive and shows progress
+  if (vcSweepIdx < vcSweepQueue.length) {
+    if (vcSweepIdx % 4 === 0) {
+      vcDrawAll(); // repaint to show accumulated traces so far
+      setTimeout(vcRunNextSweep, 0); // yield, then continue
+    } else {
+      vcRunNextSweep(); // next step immediately (no yield)
+    }
+  } else {
+    vcRunNextSweep(); // triggers "done" branch above
+  }
+}
+
+// vcSweepAnimate no longer needed — kept as no-op for safety
+function vcSweepAnimate() {}
+
+function vcStopSweep() {
+  vcSweepQueue = []; vcSweepIdx = 0;
+  vcStop();
+  const prog = document.getElementById('vc-sweep-prog');
+  if (prog) { prog.textContent = 'Stopped'; }
+}
+
+
+// ─── VC Canvas Pan / Zoom state ────────────────────────────────
+// Each VC canvas has an independent view: {xMin,xMax,yMin,yMax} or null=auto
+const vcView = {'vc-cv-V':null,'vc-cv-I':null,'vc-cv-gates':null,'vc-cv-IV':null};
+const vcDrag = {}; // tracks active drag per canvas id
+
+function vcResetView(id) {
+  vcView[id] = null;
+  vcDrawAll();
+}
+
+function vcResetAllViews() {
+  for (const k of Object.keys(vcView)) vcView[k] = null;
+  vcDrawAll();
+}
+
+// Attach wheel + drag pan to a canvas
+function vcAttachInteraction(id) {
+  const el = document.getElementById(id);
+  if (!el || el._vcInteract) return;
+  el._vcInteract = true;
+
+  // Helper: get cursor position in CSS pixels relative to canvas top-left
+  function cursorPos(e) {
+    const r = el.getBoundingClientRect();
+    return {x: e.clientX - r.left, y: e.clientY - r.top, W: r.width, H: r.height};
+  }
+
+  // Helper: is cursor inside the plot area?
+  function inPlot(x, y, W, H) {
+    const p = PAD;
+    return x >= p.left && x <= W - p.right && y >= p.top && y <= H - p.bottom;
+  }
+
+  // Wheel = zoom centered on cursor (uses CSS pixel coords throughout)
+  el.addEventListener('wheel', function(e) {
+    e.preventDefault();
+    const {x, y, W, H} = cursorPos(e);
+    if (!W || !inPlot(x, y, W, H)) return;
+    const p = PAD;
+    const pw = W - p.left - p.right, ph = H - p.top - p.bottom;
+    const view = vcGetView(id);
+    const {xMin, xMax, yMin, yMax} = view;
+    // Fraction within plot area (0-1)
+    const fx = (x - p.left) / pw;
+    const fy = 1 - (y - p.top) / ph;
+    // Data coordinate under cursor
+    const dataX = xMin + fx * (xMax - xMin);
+    const dataY = yMin + fy * (yMax - yMin);
+    // Zoom factor
+    const f = e.deltaY > 0 ? 1.3 : 1 / 1.3;
+    vcView[id] = {
+      xMin: dataX - fx * (xMax - xMin) * f,
+      xMax: dataX + (1 - fx) * (xMax - xMin) * f,
+      yMin: dataY - fy * (yMax - yMin) * f,
+      yMax: dataY + (1 - fy) * (yMax - yMin) * f,
+    };
+    vcDrawAll();
+  }, {passive: false});
+
+  // Drag = pan
+  let drag = null;
+  el.addEventListener('mousedown', function(e) {
+    if (e.button !== 0) return;
+    const {x, y, W, H} = cursorPos(e);
+    if (!W || !inPlot(x, y, W, H)) return;
+    drag = {x0: e.clientX, y0: e.clientY, view: {...vcGetView(id)}, W, H};
+    el.style.cursor = 'grabbing';
+    e.preventDefault();
+  });
+  el.addEventListener('mousemove', function(e) {
+    if (!drag) return;
+    const p = PAD;
+    const pw = drag.W - p.left - p.right;
+    const ph = drag.H - p.top - p.bottom;
+    const {xMin, xMax, yMin, yMax} = drag.view;
+    const dx = -(e.clientX - drag.x0) / pw * (xMax - xMin);
+    const dy =  (e.clientY - drag.y0) / ph * (yMax - yMin);
+    vcView[id] = {xMin: xMin + dx, xMax: xMax + dx, yMin: yMin + dy, yMax: yMax + dy};
+    vcDrawAll();
+  });
+  function endDrag() { drag = null; el.style.cursor = 'default'; }
+  el.addEventListener('mouseup', endDrag);
+  el.addEventListener('mouseleave', endDrag);
+}
+
+// Get current view or compute auto view for a given canvas
+function vcGetView(id) {
+  if (vcView[id]) return vcView[id];
+  // Compute auto view
+  const tMax = vcTotalDur();
+  if (id === 'vc-cv-V') {
+    const lo = Math.min(vcP.Vhold, vcP.Vcmd)-10, hi = Math.max(vcP.Vhold, vcP.Vcmd)+30;
+    return {xMin:0, xMax:tMax, yMin:Math.min(-10,lo), yMax:Math.max(130,hi)};
+  }
+  if (id === 'vc-cv-I') {
+    let mxI=2;
+    for (let i=0;i<vcHist.INa.length;i++) {
+      const t=vcHist.t[i];
+      if (t<vcP.tStart-1||t>vcP.tStart+vcP.dur+1) continue;
+      const mx=Math.max(Math.abs(vcHist.INa[i]),Math.abs(vcHist.IK[i]),Math.abs(vcHist.IL[i]));
+      if (mx>mxI) mxI=mx;
+    }
+    mxI=Math.max(2, mxI*1.2);
+    return {xMin:0, xMax:tMax, yMin:-mxI, yMax:mxI};
+  }
+  if (id === 'vc-cv-gates') return {xMin:0, xMax:tMax, yMin:0, yMax:1};
+  if (id === 'vc-cv-IV') {
+    let vMin=-20,vMax=130,iMin=-5,iMax=5;
+    if (ivData.length>0) {
+      const allV=ivData.map(d=>d.vcmd);
+      const allI=ivData.flatMap(d=>[d.peakINa,d.peakIK,d.peakItot]);
+      const vSpan=Math.max(...allV)-Math.min(...allV);
+      const pad=vSpan>0?vSpan*0.1:10;
+      vMin=Math.floor((Math.min(...allV)-pad)/10)*10;
+      vMax=Math.ceil((Math.max(...allV)+pad)/10)*10;
+      iMin=Math.min(-1,Math.min(...allI)*1.2);
+      iMax=Math.max(1,Math.max(...allI)*1.2);
+    }
+    return {xMin:vMin, xMax:vMax, yMin:iMin, yMax:iMax};
+  }
+  return {xMin:0, xMax:tMax, yMin:-10, yMax:10};
+}
+
+// Call once when switching to VC tab
+function vcInitInteraction() {
+  ['vc-cv-V','vc-cv-I','vc-cv-gates','vc-cv-IV'].forEach(vcAttachInteraction);
+}
+
+// Draw all previous runs faintly behind the current run
+function vcDrawPrevRuns(ctx, W, H, yMin, yMax, xMin, xMax, field, color) {
+  if (!vcAllRuns.length) return;
+  const p = PAD, pw = W-p.left-p.right, ph = H-p.top-p.bottom;
+  ctx.save();
+  // Clip to plot area so traces never bleed into axis labels
+  ctx.beginPath(); ctx.rect(p.left, p.top, pw, ph); ctx.clip();
+  ctx.globalAlpha = 0.18;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1;
+  for (const run of vcAllRuns) {
+    const xs = run.t, ys = run[field];
+    ctx.beginPath();
+    let first = true;
+    for (let i = 0; i < xs.length; i++) {
+      const x = p.left + pw * ((xs[i] - xMin) / (xMax - xMin));
+      const y = p.top  + ph * (1 - (ys[i] - yMin) / (yMax - yMin));
+      if (first) { ctx.moveTo(x, y); first = false; } else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
+
+
+function vcToggleI(key) {
+  const naEl = document.getElementById('i-show-na');
+  const kEl  = document.getElementById('i-show-k');
+  const lEl  = document.getElementById('i-show-l');
+  vcIShow.INa = naEl ? naEl.checked : true;
+  vcIShow.IK  = kEl  ? kEl.checked  : true;
+  vcIShow.IL  = lEl  ? lEl.checked  : true;
+  vcView['vc-cv-I'] = null; // reset Y auto-fit to visible curves
+  vcDrawI();
+}
+
+function vcToggleG(key) {
+  const mEl = document.getElementById('g-show-m');
+  const hEl = document.getElementById('g-show-h');
+  const nEl = document.getElementById('g-show-n');
+  vcGShow.m = mEl ? mEl.checked : true;
+  vcGShow.h = hEl ? hEl.checked : true;
+  vcGShow.n = nEl ? nEl.checked : true;
+  vcDrawGates();
+}
+
+function vcToggleIV(key) {
+  // Sync all three checkbox states directly from DOM → no flip desync
+  const naEl  = document.getElementById('iv-show-na');
+  const kEl   = document.getElementById('iv-show-k');
+  const totEl = document.getElementById('iv-show-tot');
+  vcIVShow.INa  = naEl  ? naEl.checked  : true;
+  vcIVShow.IK   = kEl   ? kEl.checked   : true;
+  vcIVShow.Itot = totEl ? totEl.checked : true;
+  // Reset Y axis to re-fit to visible curves
+  vcView['vc-cv-IV'] = null;
+  vcDrawIV();
+}
+
+function vcDrawAll() {
+  vcDrawV(); vcDrawI(); vcDrawGates(); vcDrawIV();
+}
+
+function vcDrawV() {
+  const {ctx,W,H} = setupCanvas('vc-cv-V'); if (!ctx) return;
+  const tMax = vcTotalDur();
+  const {xMin,xMax,yMin,yMax} = vcGetView('vc-cv-V');
+  drawAxes(ctx, W, H, yMin, yMax, xMin, xMax, 'mV');
+  // Step onset marker — only if visible in current view
+  const p = PAD, pw = W-p.left-p.right, ph = H-p.top-p.bottom;
+  const xS = p.left + pw*((vcP.tStart - xMin)/(xMax - xMin));
+  if (xS > p.left && xS < p.left+pw) {
+    ctx.save();
+    ctx.beginPath(); ctx.rect(p.left,p.top,pw,ph); ctx.clip();
+    ctx.strokeStyle='rgba(220,38,38,.5)'; ctx.lineWidth=1; ctx.setLineDash([4,3]);
+    ctx.beginPath(); ctx.moveTo(xS,p.top); ctx.lineTo(xS,p.top+ph); ctx.stroke();
+    ctx.setLineDash([]); ctx.restore();
+  }
+  vcDrawPrevRuns(ctx, W, H, yMin, yMax, xMin, xMax, 'V', '#0b7a6e');
+  if (vcHist.t.length > 1)
+    plotTrace(ctx, vcHist.t, vcHist.V, W, H, yMin, yMax, xMin, xMax, '#0b7a6e', 2);
+}
+
+function vcDrawI() {
+  const {ctx,W,H} = setupCanvas('vc-cv-I'); if (!ctx) return;
+  const tMax = vcTotalDur();
+  const {xMin,xMax,yMin,yMax} = vcGetView('vc-cv-I');
+  drawAxes(ctx, W, H, yMin, yMax, xMin, xMax, 'µA/cm²');
+  if (vcIShow.INa) vcDrawPrevRuns(ctx, W, H, yMin, yMax, xMin, xMax, 'INa', '#dc2626');
+  if (vcIShow.IK)  vcDrawPrevRuns(ctx, W, H, yMin, yMax, xMin, xMax, 'IK',  '#1d4ed8');
+  if (vcHist.t.length > 1) {
+    if (vcIShow.INa) plotTrace(ctx, vcHist.t, vcHist.INa, W, H, yMin, yMax, xMin, xMax, '#dc2626', 2);
+    if (vcIShow.IK)  plotTrace(ctx, vcHist.t, vcHist.IK,  W, H, yMin, yMax, xMin, xMax, '#1d4ed8', 1.5);
+    if (vcIShow.IL)  plotTrace(ctx, vcHist.t, vcHist.IL,  W, H, yMin, yMax, xMin, xMax, '#15803d', 1);
+  }
+}
+
+function vcDrawGates() {
+  const {ctx,W,H} = setupCanvas('vc-cv-gates'); if (!ctx) return;
+  const tMax = vcTotalDur();
+  const {xMin,xMax,yMin,yMax} = vcGetView('vc-cv-gates');
+  drawAxes(ctx, W, H, yMin, yMax, xMin, xMax, '');
+  if (vcGShow.m) vcDrawPrevRuns(ctx, W, H, yMin, yMax, xMin, xMax, 'm', '#dc2626');
+  if (vcGShow.n) vcDrawPrevRuns(ctx, W, H, yMin, yMax, xMin, xMax, 'n', '#7c3aed');
+  if (vcHist.t.length > 1) {
+    if (vcGShow.m) plotTrace(ctx, vcHist.t, vcHist.m, W, H, yMin, yMax, xMin, xMax, '#dc2626', 1.5);
+    if (vcGShow.h) plotTrace(ctx, vcHist.t, vcHist.h, W, H, yMin, yMax, xMin, xMax, '#f59e0b', 1.5);
+    if (vcGShow.n) plotTrace(ctx, vcHist.t, vcHist.n, W, H, yMin, yMax, xMin, xMax, '#7c3aed', 1.5);
+  }
+}
+
+function vcDrawIV() {
+  const {ctx,W,H} = setupCanvas('vc-cv-IV'); if (!ctx) return;
+  const p = PAD, pw = W-p.left-p.right, ph = H-p.top-p.bottom;
+  // Use vcGetView — respects pan/zoom state; auto-fits when null
+  const {xMin:vMin, xMax:vMax, yMin:iMin, yMax:iMax} = vcGetView('vc-cv-IV');
+  drawAxes(ctx, W, H, iMin, iMax, vMin, vMax, 'µA/cm²');
+  // Zero lines (clipped to plot area)
+  ctx.save();
+  ctx.beginPath(); ctx.rect(p.left, p.top, pw, ph); ctx.clip();
+  const y0 = p.top + ph*(1-(0-iMin)/(iMax-iMin));
+  const x0 = p.left + pw*(0-vMin)/(vMax-vMin);
+  ctx.strokeStyle='rgba(0,0,0,.15)'; ctx.lineWidth=1;
+  if (y0 >= p.top && y0 <= p.top+ph) {
+    ctx.beginPath(); ctx.moveTo(p.left,y0); ctx.lineTo(p.left+pw,y0); ctx.stroke();
+  }
+  if (x0 >= p.left && x0 <= p.left+pw) {
+    ctx.beginPath(); ctx.moveTo(x0,p.top); ctx.lineTo(x0,p.top+ph); ctx.stroke();
+  }
+  if (!ivData.length) {
+    ctx.fillStyle='#9ca3af'; ctx.font="11px 'DM Sans',sans-serif"; ctx.textAlign='center';
+    ctx.fillText('Run clamp at multiple Vcmd values to build the I–V curve', p.left+pw/2, p.top+ph/2-8);
+    ctx.fillText('Use channel blockers (TTX/TEA) to isolate INa or IK', p.left+pw/2, p.top+ph/2+10);
+    ctx.restore();
+    return;
+  }
+  const xp = v => p.left + pw*(v-vMin)/(vMax-vMin);
+  const yp = i => p.top  + ph*(1-(i-iMin)/(iMax-iMin));
+  const drawLine = (arr, color) => {
+    ctx.strokeStyle=color; ctx.fillStyle=color; ctx.lineWidth=2;
+    ctx.beginPath();
+    arr.forEach(({x,y},idx) => idx===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y));
+    ctx.stroke();
+    arr.forEach(({x,y}) => { ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2); ctx.fill(); });
+  };
+  if (vcIVShow.INa)  drawLine(ivData.map(d=>({x:xp(d.vcmd),y:yp(d.peakINa)})),  '#dc2626');
+  if (vcIVShow.IK)   drawLine(ivData.map(d=>({x:xp(d.vcmd),y:yp(d.peakIK)})),   '#1d4ed8');
+  if (vcIVShow.Itot) drawLine(ivData.map(d=>({x:xp(d.vcmd),y:yp(d.peakItot)})), '#374151');
+  ctx.restore();
+}
+
+// ── Tab switching ────────────────────────────────────────────────
+function switchSimTab(tab) {
+  ['cc','vc'].forEach(t => {
+    const tb = document.getElementById(`tab-${t}`);
+    const pn = document.getElementById(`panel-${t}`);
+    if (tb) tb.classList.toggle('active', t === tab);
+    if (pn) pn.classList.toggle('active', t === tab);
+  });
+  if (tab === 'vc') {
+    vcSyncSliders();
+    vcInitGates();
+    for (const k of Object.keys(vcHist)) vcHist[k] = [];
+    vcAllRuns.length = 0;
+    vcT = 0;
+    // Force sweep defaults in case of cached HTML
+    const sfEl=document.getElementById('vc-sweep-from');  if(sfEl&&!sfEl._init){sfEl.value='-70';sfEl._init=true;}
+    const stEl=document.getElementById('vc-sweep-to');    if(stEl&&!stEl._init){stEl.value='50'; stEl._init=true;}
+    const ssEl=document.getElementById('vc-sweep-step'); if(ssEl&&!ssEl._init){ssEl.value='5';  ssEl._init=true;}
+    vcInitInteraction(); // attach zoom/pan listeners (safe to call multiple times)
+    vcDrawAll();
+    const st = document.getElementById('sim-status-text');
+    if (st) st.textContent = 'VC Ready — click ▶ Run Clamp';
+  }
+}
+
+// ─── SYNC: slider ↔ number input ───────────────────────
+function syncSlider(slId, val){
+  const numEl = document.getElementById(slId+'-num');
+  // Don't overwrite if the number field is currently focused (user is typing)
+  if(numEl && document.activeElement !== numEl){
+    const dp = numEl.step && numEl.step.includes('.') ?
+      numEl.step.split('.')[1].length : 0;
+    numEl.value = parseFloat(val).toFixed(dp);
+  }
+}
+function syncNum(slId, val){
+  const slEl = document.getElementById(slId);
+  if(!slEl) return;
+  const numVal = parseFloat(val);
+  if(isNaN(numVal)) return;
+  const mn = parseFloat(slEl.min), mx = parseFloat(slEl.max);
+  const clamped = Math.min(mx, Math.max(mn, numVal));
+  slEl.value = clamped;
+  // Trigger the slider's oninput
+  slEl.dispatchEvent(new Event('input', {bubbles:true}));
+}
+
+// ─── DEFAULTS ────────────────────────────────────────────
+const DEFAULTS = {
+  gNa:120, gK:36, gL:0.3, ENa:50, EK:-77, EL:-54.387, Cm:1, T:6.3,
+  I0:10, tStart:10, dur:40, type:'step', freq:40, win:160, speed:3
+};
+function applyDefaults(){
+  applyPreset('standard');
+}
+
+// ─── ZOOM / PAN / HOME ───────────────────────────────────
+// Drag to pan, scroll to zoom, Home resets to auto-follow
+let _dragActive=false, _dragX0=0, _dragV0=0, _dragV1=0;
+
+function attachPlotInteraction(){
+  const plotIds=['cv-V','cv-gates','cv-currents'];
+  plotIds.forEach(id=>{
+    const c=document.getElementById(id);
+    if(!c) return;
+    c.style.cursor='grab';
+
+    // Mouse drag — pan
+    c.addEventListener('mousedown',e=>{
+      _dragActive=true; _dragX0=e.clientX;
+      _dragV0=viewStart; _dragV1=viewEnd;
+      c.style.cursor='grabbing'; e.preventDefault();
+    });
+    c.addEventListener('mousemove',e=>{
+      if(!_dragActive) return;
+      const pxPerMs=(c.clientWidth||600)/(viewEnd-viewStart);
+      const dMs=(e.clientX-_dragX0)/pxPerMs;
+      const span=_dragV1-_dragV0;
+      const newStart=_dragV0-dMs;
+      viewStart=Math.max(0,newStart);
+      viewEnd=viewStart+span;
+      viewLocked=true;
+      renderAll();
+    });
+    const stopDrag=()=>{ _dragActive=false; c.style.cursor='grab'; };
+    c.addEventListener('mouseup',stopDrag);
+    c.addEventListener('mouseleave',stopDrag);
+
+    // Scroll — zoom time axis
+    c.addEventListener('wheel',e=>{
+      e.preventDefault();
+      const span=viewEnd-viewStart;
+      const factor=e.deltaY>0?1.2:0.833;
+      const newSpan=Math.max(20,Math.min(2000,span*factor));
+      const center=(viewStart+viewEnd)/2;
+      viewStart=Math.max(0,center-newSpan/2);
+      viewEnd=viewStart+newSpan;
+      winMs=newSpan;
+      viewLocked=true;
+      // Update window slider
+      const slW=document.getElementById('sl-win');
+      if(slW){ slW.value=Math.round(newSpan); syncSlider('sl-win',Math.round(newSpan)); }
+      renderAll();
+    },{passive:false});
+
+    // Touch drag
+    let _tx0=0,_tv0=0,_tv1=0;
+    c.addEventListener('touchstart',e=>{
+      _tx0=e.touches[0].clientX; _tv0=viewStart; _tv1=viewEnd;
+    },{passive:true});
+    c.addEventListener('touchmove',e=>{
+      const pxPerMs=(c.clientWidth||600)/(viewEnd-viewStart);
+      const dMs=(e.touches[0].clientX-_tx0)/pxPerMs;
+      const span=_tv1-_tv0;
+      viewStart=Math.max(0,_tv0-dMs);
+      viewEnd=viewStart+span;
+      viewLocked=true;
+      renderAll();
+    },{passive:true});
+  });
+
+  // Double-click any plot → home
+  plotIds.forEach(id=>{
+    const c=document.getElementById(id);
+    if(c) c.addEventListener('dblclick',()=>homeView());
+  });
+}
+
+function homeView(){
+  viewLocked=false;
+  if(hist.t.length){
+    const tEnd=hist.t[hist.t.length-1];
+    viewStart=Math.max(0,tEnd-winMs);
+    viewEnd=Math.max(winMs,tEnd);
+  } else {
+    viewStart=0; viewEnd=winMs;
+  }
+  renderAll();
+}
+
+window.addEventListener('DOMContentLoaded',()=>{
+  attachPlotInteraction();
+});
+</script>
+<button class="acc-btn" id="acc-btn" onclick="accToggle()" title="Display Settings" aria-label="Display Settings">⚙</button>
+<div class="acc-panel" id="acc-panel">
+  <div class="acc-panel-title">⚙ Display Settings</div>
+  <div class="acc-row">
+    <div class="acc-row-label">Color Mode</div>
+    <div class="acc-toggle-row">
+      <span class="acc-toggle-label">Dark Mode</span>
+      <label class="acc-switch">
+        <input type="checkbox" id="acc-dark" onchange="accDark(this)">
+        <span class="acc-slider"></span>
+      </label>
+    </div>
+  </div>
+  <div class="acc-row">
+    <div class="acc-row-label">Font Size</div>
+    <div class="acc-btn-group">
+      <button class="acc-opt" id="acc-sm" onclick="accSize('sm')">Small</button>
+      <button class="acc-opt active" id="acc-md" onclick="accSize('md')">Medium</button>
+      <button class="acc-opt" id="acc-lg" onclick="accSize('lg')">Large</button>
+    </div>
+  </div>
+  <div class="acc-row">
+    <div class="acc-row-label">Font Style</div>
+    <div class="acc-btn-group">
+      <button class="acc-opt active" id="acc-f0" onclick="accFont(0)">Default</button>
+      <button class="acc-opt" id="acc-f1" onclick="accFont(1)">Serif</button>
+      <button class="acc-opt" id="acc-f2" onclick="accFont(2)">Mono</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var FONTS=['','font-serif','font-mono'];
+  var LS=window.localStorage;
+
+  function lsGet(k){try{return LS?LS.getItem(k):null;}catch(e){return null;}}
+  function lsSet(k,v){try{if(LS)LS.setItem(k,v);}catch(e){}}
+
+  function applyPrefs(){
+    var dark=lsGet('acc_dark')==='1';
+    var sz=lsGet('acc_sz')||'md';
+    var fi=parseInt(lsGet('acc_fi')||'0');
+    var b=document.body;
+    // Theme
+    b.classList.toggle('dark-mode',dark);
+    b.classList.toggle('light-mode',!dark);
+    // Size
+    b.classList.remove('size-sm','size-md','size-lg');
+    b.classList.add('size-'+sz);
+    // Font
+    b.classList.remove('font-serif','font-mono');
+    if(FONTS[fi]) b.classList.add(FONTS[fi]);
+    // Sync controls
+    var cb=document.getElementById('acc-dark');
+    if(cb) cb.checked=dark;
+    ['sm','md','lg'].forEach(function(s){
+      var el=document.getElementById('acc-'+s);
+      if(el) el.classList.toggle('active',s===sz);
+    });
+    [0,1,2].forEach(function(i){
+      var el=document.getElementById('acc-f'+i);
+      if(el) el.classList.toggle('active',i===fi);
+    });
+  }
+
+  window.accToggle=function(){
+    var p=document.getElementById('acc-panel');
+    if(p) p.classList.toggle('open');
+  };
+  window.accDark=function(cb){lsSet('acc_dark',cb.checked?'1':'0');applyPrefs();};
+  window.accSize=function(s){lsSet('acc_sz',s);applyPrefs();};
+  window.accFont=function(i){lsSet('acc_fi',i);applyPrefs();};
+
+  // Close on outside click
+  document.addEventListener('click',function(e){
+    var p=document.getElementById('acc-panel');
+    var b2=document.getElementById('acc-btn');
+    if(p&&b2&&p.classList.contains('open')&&!p.contains(e.target)&&e.target!==b2)
+      p.classList.remove('open');
+  });
+
+  // Apply on load (before DOMContentLoaded to avoid flash)
+  applyPrefs();
+  document.addEventListener('DOMContentLoaded',applyPrefs);
+})();
+</script><!-- Copyright footer -->
+<footer style="text-align:center;padding:20px 24px;font-family:'DM Mono',monospace;font-size:.72em;color:var(--dim);border-top:1px solid var(--border);margin-top:auto">
+  © 2026 Asad Mirza, Ph.D. · Research Assistant Professor · FIU Biomedical Engineering ·
+  <a href="https://github.com/DThornz/website-cv-tools" target="_blank" style="color:var(--dim)">GitHub</a>
+</footer>
+</body>
+</html>
